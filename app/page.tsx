@@ -1,14 +1,5 @@
 import { getDashboardData } from "@/lib/airtable";
-import {
-  weightSeries,
-  latestWeight,
-  latestLoggedDay,
-  weeklyAverages,
-} from "@/lib/metrics";
-import { KpiCards } from "@/components/KpiCards";
-import { WeightTrend } from "@/components/WeightTrend";
-import { MacroAdherence } from "@/components/MacroAdherence";
-import { MealPlan } from "@/components/MealPlan";
+import { AppShell } from "@/components/AppShell";
 
 export const revalidate = 60;
 
@@ -25,33 +16,14 @@ export default async function Page() {
     // (base id, table names, Airtable auth errors) to the browser.
     console.error("Dashboard data fetch failed:", e);
     return (
-      <main className="mx-auto max-w-3xl p-4">
-        <h1 className="text-xl font-semibold">Gym Dashboard</h1>
-        <p className="mt-4 rounded bg-red-500/10 p-3 text-sm text-red-300">
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-2 p-6 text-center">
+        <h1 className="text-lg font-bold">Gym Dashboard</h1>
+        <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
           Could not load data right now. Please try again later.
         </p>
       </main>
     );
   }
 
-  const today = todayISO();
-  const { checkIns, targets, mealTemplates, mealItems } = data;
-  const week = weeklyAverages(checkIns, today);
-
-  return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-xl font-semibold">Gym Dashboard</h1>
-      <KpiCards
-        latestWeight={latestWeight(checkIns)}
-        daysLogged={week.daysLogged}
-        avgCalories={week.calories}
-        avgProtein={week.proteinG}
-      />
-      <div className="grid gap-4 md:grid-cols-2">
-        <WeightTrend data={weightSeries(checkIns)} />
-        <MacroAdherence day={latestLoggedDay(checkIns, targets)} />
-      </div>
-      <MealPlan targets={targets} templates={mealTemplates} items={mealItems} />
-    </main>
-  );
+  return <AppShell data={data} today={todayISO()} />;
 }

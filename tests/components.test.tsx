@@ -1,37 +1,44 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { KpiCards } from "@/components/KpiCards";
-import { MacroAdherence } from "@/components/MacroAdherence";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { DayTypeToggle } from "@/components/DayTypeToggle";
+import { DiaryTab } from "@/components/DiaryTab";
+import { DailyTarget, MealItem, MealTemplate } from "@/lib/types";
 
-describe("KpiCards", () => {
-  it("renders values and an em dash for missing weight", () => {
-    render(
-      <KpiCards latestWeight={null} daysLogged={4} avgCalories={1850} avgProtein={172} />
-    );
-    expect(screen.getByText("—")).toBeTruthy();
-    expect(screen.getByText("4")).toBeTruthy();
-    expect(screen.getByText("1850")).toBeTruthy();
-    expect(screen.getByText("172 g")).toBeTruthy();
+describe("DayTypeToggle", () => {
+  it("renders both options and reports the selected one", () => {
+    const onChange = vi.fn();
+    render(<DayTypeToggle value="Training Day" onChange={onChange} />);
+    const training = screen.getByRole("tab", { name: "Training" });
+    expect(training.getAttribute("aria-selected")).toBe("true");
+    fireEvent.click(screen.getByRole("tab", { name: "Non-Training" }));
+    expect(onChange).toHaveBeenCalledWith("Non-Training Day");
   });
 });
 
-describe("MacroAdherence", () => {
-  it("shows an empty state when no day is logged", () => {
-    render(<MacroAdherence day={null} />);
-    expect(screen.getByText("No nutrition logged yet.")).toBeTruthy();
-  });
+describe("DiaryTab", () => {
+  const targets: DailyTarget[] = [
+    { id: "td", name: "TD", dayType: "Training Day", calories: 2063, proteinG: 177, carbsG: 212, fatG: 53 },
+  ];
+  const templates: MealTemplate[] = [
+    { id: "t1", name: "TD — Shake", dayType: "Training Day", mealSlot: "Shake", timing: "Anytime" },
+  ];
+  const items: MealItem[] = [
+    { id: "i1", entry: "TD Shake — Oats", dayType: "Training Day", mealSlot: "Shake", food: "Oats", amountG: 35 },
+  ];
 
-  it("shows logged vs target calories", () => {
+  it("shows the day's target and meal slots", () => {
     render(
-      <MacroAdherence
-        day={{
-          date: "2026-06-28",
-          dayType: "Training Day",
-          logged: { calories: 2100, proteinG: 180, carbsG: 210, fatG: 55 },
-          target: { calories: 2063, proteinG: 177, carbsG: 212, fatG: 53 },
-        }}
+      <DiaryTab
+        templates={templates}
+        items={items}
+        targets={targets}
+        dayType="Training Day"
+        onDayType={() => {}}
       />
     );
-    expect(screen.getByText("2100 / 2063 kcal")).toBeTruthy();
+    expect(screen.getByText("2063 kcal")).toBeTruthy();
+    expect(screen.getByText("Shake")).toBeTruthy();
+    // First slot is expanded by default, so its item is visible.
+    expect(screen.getByText("35 g Oats")).toBeTruthy();
   });
 });

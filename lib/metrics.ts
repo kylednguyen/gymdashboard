@@ -102,6 +102,49 @@ function avg(values: number[]): number | null {
   return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
 }
 
+export interface DayBudget {
+  dayType: DayType;
+  target: MacroSet | null;
+  consumed: MacroSet;
+  loggedDate: string | null;
+}
+
+const ZERO: MacroSet = { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 };
+
+/**
+ * Calorie/macro budget for a day type: the target, plus what was consumed on
+ * the most recent logged check-in of that type (zeros when nothing is logged).
+ * Drives the MyFitnessPal-style ring — "budget − food = remaining".
+ */
+export function dayBudget(
+  checkIns: CheckIn[],
+  targets: DailyTarget[],
+  dayType: DayType
+): DayBudget {
+  const t = targetFor(targets, dayType);
+  const matches = checkIns
+    .filter((c) => c.date && c.dayType === dayType && c.caloriesLogged !== undefined)
+    .slice()
+    .sort((a, b) => toDayNum(a.date) - toDayNum(b.date));
+  const latest = matches[matches.length - 1];
+  const consumed: MacroSet = latest
+    ? {
+        calories: latest.caloriesLogged ?? 0,
+        proteinG: latest.proteinG ?? 0,
+        carbsG: latest.carbsG ?? 0,
+        fatG: latest.fatG ?? 0,
+      }
+    : ZERO;
+  return {
+    dayType,
+    target: t
+      ? { calories: t.calories, proteinG: t.proteinG, carbsG: t.carbsG, fatG: t.fatG }
+      : null,
+    consumed,
+    loggedDate: latest?.date ?? null,
+  };
+}
+
 /** Averages over check-ins within the last `days` days (inclusive of today). */
 export function weeklyAverages(
   checkIns: CheckIn[],

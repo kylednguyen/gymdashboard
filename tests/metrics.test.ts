@@ -6,6 +6,7 @@ import {
   caloriesVsTargetSeries,
   latestLoggedDay,
   weeklyAverages,
+  dayBudget,
 } from "@/lib/metrics";
 import { CheckIn, DailyTarget } from "@/lib/types";
 
@@ -78,6 +79,26 @@ describe("latestLoggedDay", () => {
 
   it("returns null when nothing is logged", () => {
     expect(latestLoggedDay([], targets)).toBeNull();
+  });
+});
+
+describe("dayBudget", () => {
+  it("returns the target with zero consumed when nothing is logged", () => {
+    const b = dayBudget([], targets, "Training Day");
+    expect(b.target).toEqual({ calories: 2063, proteinG: 177, carbsG: 212, fatG: 53 });
+    expect(b.consumed).toEqual({ calories: 0, proteinG: 0, carbsG: 0, fatG: 0 });
+    expect(b.loggedDate).toBeNull();
+  });
+
+  it("uses the most recent matching-day-type check-in for consumed", () => {
+    const data = [
+      ci({ date: "2026-06-24", dayType: "Training Day", caloriesLogged: 1900, proteinG: 150 }),
+      ci({ date: "2026-06-28", dayType: "Training Day", caloriesLogged: 2100, proteinG: 175, carbsG: 200, fatG: 50 }),
+      ci({ date: "2026-06-27", dayType: "Non-Training Day", caloriesLogged: 1500 }),
+    ];
+    const b = dayBudget(data, targets, "Training Day");
+    expect(b.consumed).toEqual({ calories: 2100, proteinG: 175, carbsG: 200, fatG: 50 });
+    expect(b.loggedDate).toBe("2026-06-28");
   });
 });
 
