@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fitness Dashboard
 
-## Getting Started
+Private, mobile-friendly dashboard reading personal fitness data from Airtable.
 
-First, run the development server:
+## Airtable setup
+Create three tables in your base:
+- **Workouts**: Date (date), Type (single select: Strength/Cardio/Mobility), Duration (number, minutes), Notes (long text).
+- **Body Metrics**: Date (date), Weight (number), Body fat % (number, optional).
+- **Goals**: Name (text), Target value (number), Current value (number), Unit (text), Target date (date, optional), Status (single select: On track/At risk/Done).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Create a Personal Access Token (Airtable → Builder hub → Personal access tokens)
+with scope `data.records:read` on this base.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run locally
+1. `cp .env.example .env.local` and fill in `AIRTABLE_PAT`, `AIRTABLE_BASE_ID`, `DASHBOARD_PASSWORD`.
+2. `npm install`
+3. `npm run dev` → open http://localhost:3000 (browser prompts for password; username can be anything).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Test
+`npm test`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy to Vercel
+1. `npm i -g vercel` (once).
+2. `vercel` → link/create the project.
+3. Add env vars: `vercel env add AIRTABLE_PAT`, `vercel env add AIRTABLE_BASE_ID`, `vercel env add DASHBOARD_PASSWORD` (Production + Preview).
+4. `vercel --prod` → open the URL on your phone; enter the password when prompted.
