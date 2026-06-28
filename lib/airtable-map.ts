@@ -1,46 +1,102 @@
-import { RawRecord, Workout, BodyMetric, Goal, WorkoutType, GoalStatus } from "./types";
+import {
+  RawRecord,
+  CheckIn,
+  DailyTarget,
+  MealTemplate,
+  MealItem,
+  DayType,
+} from "./types";
 
 const str = (v: unknown): string | undefined =>
   typeof v === "string" && v.trim() !== "" ? v : undefined;
 const num = (v: unknown): number | undefined =>
   typeof v === "number" ? v : undefined;
+const bool = (v: unknown): boolean => v === true;
 
-export function mapWorkout(rec: RawRecord): Workout {
+// Airtable returns singleSelect values as the plain choice name over the REST SDK.
+const dayType = (v: unknown): DayType | undefined => {
+  const s = str(v);
+  return s === "Training Day" || s === "Non-Training Day" ? s : undefined;
+};
+
+export function mapCheckIn(rec: RawRecord): CheckIn {
   const f = rec.fields;
-  const w: Workout = {
+  const c: CheckIn = {
     id: rec.id,
-    date: str(f["Date"]) ?? "",
-    type: (str(f["Type"]) as WorkoutType) ?? "Strength",
-    durationMin: num(f["Duration"]) ?? 0,
+    date: str(f["Check-in Date"]) ?? "",
+    workout: bool(f["Workout"]),
   };
+  const dt = dayType(f["Day Type"]);
+  if (dt) c.dayType = dt;
+  const weight = num(f["Bodyweight lb"]);
+  if (weight !== undefined) c.bodyweightLb = weight;
+  const cal = num(f["Calories Logged"]);
+  if (cal !== undefined) c.caloriesLogged = cal;
+  const protein = num(f["Protein Logged g"]);
+  if (protein !== undefined) c.proteinG = protein;
+  const carbs = num(f["Carbs Logged g"]);
+  if (carbs !== undefined) c.carbsG = carbs;
+  const fat = num(f["Fat Logged g"]);
+  if (fat !== undefined) c.fatG = fat;
+  const steps = num(f["Steps"]);
+  if (steps !== undefined) c.steps = steps;
   const notes = str(f["Notes"]);
-  if (notes) w.notes = notes;
-  return w;
+  if (notes) c.notes = notes;
+  return c;
 }
 
-export function mapBodyMetric(rec: RawRecord): BodyMetric {
+export function mapDailyTarget(rec: RawRecord): DailyTarget {
   const f = rec.fields;
-  const m: BodyMetric = {
+  const t: DailyTarget = {
     id: rec.id,
-    date: str(f["Date"]) ?? "",
-    weight: num(f["Weight"]) ?? 0,
+    name: str(f["Target Name"]) ?? "",
+    calories: num(f["Calories"]) ?? 0,
+    proteinG: num(f["Protein g"]) ?? 0,
+    carbsG: num(f["Carbs g"]) ?? 0,
+    fatG: num(f["Fat g"]) ?? 0,
   };
-  const bf = num(f["Body fat %"]);
-  if (bf !== undefined) m.bodyFatPct = bf;
+  const dt = dayType(f["Day Type"]);
+  if (dt) t.dayType = dt;
+  const notes = str(f["Notes"]);
+  if (notes) t.notes = notes;
+  return t;
+}
+
+export function mapMealTemplate(rec: RawRecord): MealTemplate {
+  const f = rec.fields;
+  const m: MealTemplate = {
+    id: rec.id,
+    name: str(f["Meal Template"]) ?? "",
+  };
+  const dt = dayType(f["Day Type"]);
+  if (dt) m.dayType = dt;
+  const slot = str(f["Meal Slot"]);
+  if (slot) m.mealSlot = slot;
+  const timing = str(f["Timing"]);
+  if (timing) m.timing = timing;
+  const notes = str(f["Notes"]);
+  if (notes) m.notes = notes;
   return m;
 }
 
-export function mapGoal(rec: RawRecord): Goal {
+export function mapMealItem(rec: RawRecord): MealItem {
   const f = rec.fields;
-  const g: Goal = {
+  const m: MealItem = {
     id: rec.id,
-    name: str(f["Name"]) ?? "",
-    targetValue: num(f["Target value"]) ?? 0,
-    currentValue: num(f["Current value"]) ?? 0,
-    unit: str(f["Unit"]) ?? "",
-    status: (str(f["Status"]) as GoalStatus) ?? "On track",
+    entry: str(f["Item Entry"]) ?? "",
+    food: str(f["Food"]) ?? "",
   };
-  const td = str(f["Target date"]);
-  if (td) g.targetDate = td;
-  return g;
+  const dt = dayType(f["Day Type"]);
+  if (dt) m.dayType = dt;
+  const slot = str(f["Meal Slot"]);
+  if (slot) m.mealSlot = slot;
+  const amount = num(f["Amount g"]);
+  if (amount !== undefined) m.amountG = amount;
+  const state = str(f["State"]);
+  if (state) m.state = state;
+  const group = str(f["Option Group"]);
+  if (group) m.optionGroup = group;
+  const notes = str(f["Notes"]);
+  if (notes) m.notes = notes;
+  return m;
 }

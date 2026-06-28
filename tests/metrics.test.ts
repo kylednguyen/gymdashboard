@@ -1,83 +1,99 @@
 import { describe, it, expect } from "vitest";
 import {
-  workoutsThisWeek,
-  currentStreak,
-  latestWeight,
-  goalsOnTrack,
   weightSeries,
-  consistencyMap,
+  latestWeight,
+  targetFor,
+  caloriesVsTargetSeries,
+  latestLoggedDay,
+  weeklyAverages,
 } from "@/lib/metrics";
-import { Workout, BodyMetric, Goal } from "@/lib/types";
+import { CheckIn, DailyTarget } from "@/lib/types";
 
-const w = (date: string): Workout => ({ id: date, date, type: "Strength", durationMin: 30 });
-
-describe("workoutsThisWeek", () => {
-  it("counts workouts within the last 7 days inclusive", () => {
-    const data = [w("2026-06-28"), w("2026-06-22"), w("2026-06-21")];
-    expect(workoutsThisWeek(data, "2026-06-28")).toBe(2); // 28 and 22, not 21
-  });
+const ci = (over: Partial<CheckIn> & { date: string }): CheckIn => ({
+  id: over.date,
+  workout: false,
+  ...over,
 });
 
-describe("currentStreak", () => {
-  it("counts consecutive days ending today", () => {
-    const data = [w("2026-06-28"), w("2026-06-27"), w("2026-06-26")];
-    expect(currentStreak(data, "2026-06-28")).toBe(3);
-  });
-  it("allows today to be missing if yesterday has a workout", () => {
-    const data = [w("2026-06-27"), w("2026-06-26")];
-    expect(currentStreak(data, "2026-06-28")).toBe(2);
-  });
-  it("is zero when the most recent workout is older than yesterday", () => {
-    const data = [w("2026-06-25")];
-    expect(currentStreak(data, "2026-06-28")).toBe(0);
-  });
-});
+const targets: DailyTarget[] = [
+  { id: "td", name: "TD", dayType: "Training Day", calories: 2063, proteinG: 177, carbsG: 212, fatG: 53 },
+  { id: "ntd", name: "NTD", dayType: "Non-Training Day", calories: 1535, proteinG: 166, carbsG: 84, fatG: 59 },
+];
 
-describe("latestWeight", () => {
-  it("returns the most recent weight", () => {
-    const m: BodyMetric[] = [
-      { id: "1", date: "2026-06-20", weight: 81 },
-      { id: "2", date: "2026-06-27", weight: 80 },
+describe("weightSeries / latestWeight", () => {
+  it("returns dated weights ascending and the most recent", () => {
+    const data = [
+      ci({ date: "2026-06-27", bodyweightLb: 181 }),
+      ci({ date: "2026-06-20", bodyweightLb: 183 }),
+      ci({ date: "2026-06-25" }), // no weight → skipped
     ];
-    expect(latestWeight(m)).toBe(80);
+    expect(weightSeries(data)).toEqual([
+      { date: "2026-06-20", weight: 183 },
+      { date: "2026-06-27", weight: 181 },
+    ]);
+    expect(latestWeight(data)).toBe(181);
   });
-  it("returns null for empty", () => {
+
+  it("returns null weight when none logged", () => {
     expect(latestWeight([])).toBeNull();
   });
 });
 
-describe("goalsOnTrack", () => {
-  it("counts On track and Done", () => {
-    const g: Goal[] = [
-      { id: "1", name: "a", targetValue: 1, currentValue: 1, unit: "kg", status: "On track" },
-      { id: "2", name: "b", targetValue: 1, currentValue: 0, unit: "kg", status: "At risk" },
-      { id: "3", name: "c", targetValue: 1, currentValue: 1, unit: "kg", status: "Done" },
-    ];
-    expect(goalsOnTrack(g)).toBe(2);
+describe("targetFor", () => {
+  it("matches a day type", () => {
+    expect(targetFor(targets, "Non-Training Day")?.calories).toBe(1535);
+  });
+  it("returns null for missing/unknown day type", () => {
+    expect(targetFor(targets, undefined)).toBeNull();
   });
 });
 
-describe("weightSeries", () => {
-  it("sorts ascending by date", () => {
-    const m: BodyMetric[] = [
-      { id: "1", date: "2026-06-27", weight: 80 },
-      { id: "2", date: "2026-06-20", weight: 81 },
+describe("caloriesVsTargetSeries", () => {
+  it("pairs logged calories with that day's target", () => {
+    const data = [
+      ci({ date: "2026-06-28", dayType: "Training Day", caloriesLogged: 2100 }),
+      ci({ date: "2026-06-27", dayType: "Non-Training Day", caloriesLogged: 1500 }),
+      ci({ date: "2026-06-26" }), // no calories → skipped
     ];
-    expect(weightSeries(m)).toEqual([
-      { date: "2026-06-20", weight: 81 },
-      { date: "2026-06-27", weight: 80 },
+    expect(caloriesVsTargetSeries(data, targets)).toEqual([
+      { date: "2026-06-27", logged: 1500, target: 1535 },
+      { date: "2026-06-28", logged: 2100, target: 2063 },
     ]);
   });
 });
 
-describe("consistencyMap", () => {
-  it("returns one entry per day with workout counts", () => {
-    const data = [w("2026-06-28"), w("2026-06-28"), w("2026-06-26")];
-    const result = consistencyMap(data, "2026-06-28", 3);
-    expect(result).toEqual([
-      { date: "2026-06-26", count: 1 },
-      { date: "2026-06-27", count: 0 },
-      { date: "2026-06-28", count: 2 },
-    ]);
+describe("latestLoggedDay", () => {
+  it("returns the most recent logged day with its target", () => {
+    const data = [
+      ci({ date: "2026-06-26", dayType: "Training Day", caloriesLogged: 2000, proteinG: 170 }),
+      ci({ date: "2026-06-28", dayType: "Non-Training Day", caloriesLogged: 1480, proteinG: 160, carbsG: 80, fatG: 55 }),
+    ];
+    expect(latestLoggedDay(data, targets)).toEqual({
+      date: "2026-06-28",
+      dayType: "Non-Training Day",
+      logged: { calories: 1480, proteinG: 160, carbsG: 80, fatG: 55 },
+      target: { calories: 1535, proteinG: 166, carbsG: 84, fatG: 59 },
+    });
+  });
+
+  it("returns null when nothing is logged", () => {
+    expect(latestLoggedDay([], targets)).toBeNull();
+  });
+});
+
+describe("weeklyAverages", () => {
+  it("averages logged values within the last 7 days", () => {
+    const data = [
+      ci({ date: "2026-06-28", caloriesLogged: 2000, proteinG: 180 }),
+      ci({ date: "2026-06-26", caloriesLogged: 1600, proteinG: 160 }),
+      ci({ date: "2026-06-20", caloriesLogged: 9999, proteinG: 999 }), // outside window
+    ];
+    expect(weeklyAverages(data, "2026-06-28")).toEqual({
+      daysLogged: 2,
+      calories: 1800,
+      proteinG: 170,
+      carbsG: null,
+      fatG: null,
+    });
   });
 });

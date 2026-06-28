@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Fitness Dashboard",
-  description: "Personal fitness tracker",
+  title: "Gym Dashboard",
+  description: "Personal nutrition and bodyweight tracker",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

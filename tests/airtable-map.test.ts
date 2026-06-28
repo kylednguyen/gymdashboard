@@ -1,57 +1,127 @@
 import { describe, it, expect } from "vitest";
-import { mapWorkout, mapBodyMetric, mapGoal } from "@/lib/airtable-map";
+import {
+  mapCheckIn,
+  mapDailyTarget,
+  mapMealTemplate,
+  mapMealItem,
+} from "@/lib/airtable-map";
 
-describe("mapWorkout", () => {
-  it("maps fields to a Workout", () => {
+describe("mapCheckIn", () => {
+  it("maps a fully logged day", () => {
     const rec = {
-      id: "rec1",
-      fields: { Date: "2026-06-20", Type: "Strength", Duration: 60, Notes: "legs" },
+      id: "c1",
+      fields: {
+        "Check-in Date": "2026-06-28",
+        "Day Type": "Training Day",
+        "Bodyweight lb": 182.4,
+        "Calories Logged": 2050,
+        "Protein Logged g": 180,
+        "Carbs Logged g": 210,
+        "Fat Logged g": 55,
+        Steps: 9000,
+        Workout: true,
+        Notes: "felt strong",
+      },
     };
-    expect(mapWorkout(rec)).toEqual({
-      id: "rec1",
-      date: "2026-06-20",
-      type: "Strength",
-      durationMin: 60,
-      notes: "legs",
+    expect(mapCheckIn(rec)).toEqual({
+      id: "c1",
+      date: "2026-06-28",
+      dayType: "Training Day",
+      bodyweightLb: 182.4,
+      caloriesLogged: 2050,
+      proteinG: 180,
+      carbsG: 210,
+      fatG: 55,
+      steps: 9000,
+      workout: true,
+      notes: "felt strong",
     });
   });
 
-  it("defaults duration to 0 and omits empty notes", () => {
-    const rec = { id: "rec2", fields: { Date: "2026-06-21", Type: "Cardio" } };
-    expect(mapWorkout(rec)).toEqual({
-      id: "rec2",
-      date: "2026-06-21",
-      type: "Cardio",
-      durationMin: 0,
+  it("defaults workout to false and omits absent fields", () => {
+    const rec = { id: "c2", fields: { "Check-in Date": "2026-06-27" } };
+    expect(mapCheckIn(rec)).toEqual({ id: "c2", date: "2026-06-27", workout: false });
+  });
+
+  it("ignores an unknown day type", () => {
+    const rec = { id: "c3", fields: { "Check-in Date": "2026-06-27", "Day Type": "Rest" } };
+    expect(mapCheckIn(rec).dayType).toBeUndefined();
+  });
+});
+
+describe("mapDailyTarget", () => {
+  it("maps targets with defaults", () => {
+    const rec = {
+      id: "t1",
+      fields: {
+        "Target Name": "1800 Plan — Training Day",
+        "Day Type": "Training Day",
+        Calories: 2063,
+        "Protein g": 177,
+        "Carbs g": 212,
+        "Fat g": 53,
+      },
+    };
+    expect(mapDailyTarget(rec)).toEqual({
+      id: "t1",
+      name: "1800 Plan — Training Day",
+      dayType: "Training Day",
+      calories: 2063,
+      proteinG: 177,
+      carbsG: 212,
+      fatG: 53,
     });
   });
 });
 
-describe("mapBodyMetric", () => {
-  it("maps weight and body fat", () => {
-    const rec = { id: "b1", fields: { Date: "2026-06-20", Weight: 80, "Body fat %": 18 } };
-    expect(mapBodyMetric(rec)).toEqual({
-      id: "b1",
-      date: "2026-06-20",
-      weight: 80,
-      bodyFatPct: 18,
+describe("mapMealTemplate", () => {
+  it("maps a meal slot template", () => {
+    const rec = {
+      id: "m1",
+      fields: {
+        "Meal Template": "TD — Shake",
+        "Day Type": "Training Day",
+        "Meal Slot": "Shake",
+        Timing: "Anytime",
+        Notes: "Oats, whey isolate, berries.",
+      },
+    };
+    expect(mapMealTemplate(rec)).toEqual({
+      id: "m1",
+      name: "TD — Shake",
+      dayType: "Training Day",
+      mealSlot: "Shake",
+      timing: "Anytime",
+      notes: "Oats, whey isolate, berries.",
     });
   });
 });
 
-describe("mapGoal", () => {
-  it("maps a goal with defaults", () => {
+describe("mapMealItem", () => {
+  it("maps a food portion", () => {
     const rec = {
-      id: "g1",
-      fields: { Name: "Bench 100kg", "Target value": 100, "Current value": 80, Unit: "kg", Status: "On track" },
+      id: "i1",
+      fields: {
+        "Item Entry": "NTD Meal 3 — Avocado",
+        "Day Type": "Non-Training Day",
+        "Meal Slot": "Meal 3",
+        Food: "Avocado",
+        "Amount g": 58,
+        State: "raw",
+        "Option Group": "Fat option",
+        Notes: "OR 9g olive oil",
+      },
     };
-    expect(mapGoal(rec)).toEqual({
-      id: "g1",
-      name: "Bench 100kg",
-      targetValue: 100,
-      currentValue: 80,
-      unit: "kg",
-      status: "On track",
+    expect(mapMealItem(rec)).toEqual({
+      id: "i1",
+      entry: "NTD Meal 3 — Avocado",
+      dayType: "Non-Training Day",
+      mealSlot: "Meal 3",
+      food: "Avocado",
+      amountG: 58,
+      state: "raw",
+      optionGroup: "Fat option",
+      notes: "OR 9g olive oil",
     });
   });
 });

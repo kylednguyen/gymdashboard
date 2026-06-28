@@ -1,11 +1,10 @@
 import { UNIT_WEIGHT } from "@/lib/types";
 
 interface Props {
-  workoutsThisWeek: number;
-  currentStreak: number;
   latestWeight: number | null;
-  goalsOnTrack: number;
-  goalsTotal: number;
+  daysLogged: number;
+  avgCalories: number | null;
+  avgProtein: number | null;
 }
 
 function Card({ label, value }: { label: string; value: string }) {
@@ -20,10 +19,19 @@ function Card({ label, value }: { label: string; value: string }) {
 export function KpiCards(p: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-      <Card label="Workouts this week" value={String(p.workoutsThisWeek)} />
-      <Card label="Current streak" value={`${p.currentStreak} d`} />
-      <Card label="Latest weight" value={p.latestWeight === null ? "—" : `${p.latestWeight} ${UNIT_WEIGHT}`} />
-      <Card label="Goals on track" value={`${p.goalsOnTrack}/${p.goalsTotal}`} />
+      <Card
+        label="Latest weight"
+        value={p.latestWeight === null ? "—" : `${p.latestWeight} ${UNIT_WEIGHT}`}
+      />
+      <Card label="Days logged (7d)" value={String(p.daysLogged)} />
+      <Card
+        label="Avg calories (7d)"
+        value={p.avgCalories === null ? "—" : String(p.avgCalories)}
+      />
+      <Card
+        label="Avg protein (7d)"
+        value={p.avgProtein === null ? "—" : `${p.avgProtein} g`}
+      />
     </div>
   );
 }

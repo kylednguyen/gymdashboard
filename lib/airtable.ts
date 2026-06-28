@@ -1,7 +1,23 @@
+// Read-only, server-only data layer.
+// - `server-only` makes the build fail if this module is ever imported into a
+//   Client Component, so AIRTABLE_PAT can never be bundled to the browser.
+// - Every call uses `.select()` only; no create/update/destroy is ever issued,
+//   so the dashboard cannot mutate the Airtable base.
 import "server-only";
 import Airtable from "airtable";
-import { mapWorkout, mapBodyMetric, mapGoal } from "./airtable-map";
-import { Workout, BodyMetric, Goal, RawRecord } from "./types";
+import {
+  mapCheckIn,
+  mapDailyTarget,
+  mapMealTemplate,
+  mapMealItem,
+} from "./airtable-map";
+import {
+  CheckIn,
+  DailyTarget,
+  MealTemplate,
+  MealItem,
+  RawRecord,
+} from "./types";
 
 function getBase() {
   const pat = process.env.AIRTABLE_PAT;
@@ -14,26 +30,39 @@ function getBase() {
 
 async function fetchTable(name: string): Promise<RawRecord[]> {
   const records = await getBase()(name).select().all();
-  return records.map((r) => ({ id: r.id, fields: r.fields as Record<string, unknown> }));
+  return records
+    .map((r) => ({ id: r.id, fields: r.fields as Record<string, unknown> }))
+    // Skip empty rows (e.g. a placeholder Daily Target with no fields filled in).
+    .filter((r) => Object.keys(r.fields).length > 0);
 }
 
-export async function getWorkouts(): Promise<Workout[]> {
-  return (await fetchTable("Workouts")).map(mapWorkout);
+export async function getCheckIns(): Promise<CheckIn[]> {
+  return (await fetchTable("Check Ins")).map(mapCheckIn);
 }
 
-export async function getBodyMetrics(): Promise<BodyMetric[]> {
-  return (await fetchTable("Body Metrics")).map(mapBodyMetric);
+export async function getDailyTargets(): Promise<DailyTarget[]> {
+  return (await fetchTable("Daily Targets")).map(mapDailyTarget);
 }
 
-export async function getGoals(): Promise<Goal[]> {
-  return (await fetchTable("Goals")).map(mapGoal);
+export async function getMealTemplates(): Promise<MealTemplate[]> {
+  return (await fetchTable("Meal Templates")).map(mapMealTemplate);
 }
 
-export async function getDashboardData(): Promise<{ workouts: Workout[]; bodyMetrics: BodyMetric[]; goals: Goal[] }> {
-  const [workouts, bodyMetrics, goals] = await Promise.all([
-    getWorkouts(),
-    getBodyMetrics(),
-    getGoals(),
+export async function getMealItems(): Promise<MealItem[]> {
+  return (await fetchTable("Meal Items")).map(mapMealItem);
+}
+
+export async function getDashboardData(): Promise<{
+  checkIns: CheckIn[];
+  targets: DailyTarget[];
+  mealTemplates: MealTemplate[];
+  mealItems: MealItem[];
+}> {
+  const [checkIns, targets, mealTemplates, mealItems] = await Promise.all([
+    getCheckIns(),
+    getDailyTargets(),
+    getMealTemplates(),
+    getMealItems(),
   ]);
-  return { workouts, bodyMetrics, goals };
+  return { checkIns, targets, mealTemplates, mealItems };
 }

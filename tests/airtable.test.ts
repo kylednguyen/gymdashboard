@@ -23,15 +23,50 @@ beforeEach(() => {
   selectAll.mockReset();
 });
 
-describe("getWorkouts", () => {
-  it("returns mapped workouts", async () => {
+describe("getCheckIns", () => {
+  it("returns mapped check-ins and skips empty rows", async () => {
     selectAll.mockResolvedValue([
-      { id: "rec1", fields: { Date: "2026-06-20", Type: "Strength", Duration: 45 } },
+      {
+        id: "c1",
+        fields: { "Check-in Date": "2026-06-28", "Bodyweight lb": 182, Workout: true },
+      },
+      { id: "blank", fields: {} },
     ]);
-    const { getWorkouts } = await import("@/lib/airtable");
-    const result = await getWorkouts();
+    const { getCheckIns } = await import("@/lib/airtable");
+    const result = await getCheckIns();
     expect(result).toEqual([
-      { id: "rec1", date: "2026-06-20", type: "Strength", durationMin: 45 },
+      { id: "c1", date: "2026-06-28", bodyweightLb: 182, workout: true },
+    ]);
+  });
+});
+
+describe("getDailyTargets", () => {
+  it("returns mapped targets", async () => {
+    selectAll.mockResolvedValue([
+      {
+        id: "t1",
+        fields: {
+          "Target Name": "TD",
+          "Day Type": "Training Day",
+          Calories: 2063,
+          "Protein g": 177,
+          "Carbs g": 212,
+          "Fat g": 53,
+        },
+      },
+    ]);
+    const { getDailyTargets } = await import("@/lib/airtable");
+    const result = await getDailyTargets();
+    expect(result).toEqual([
+      {
+        id: "t1",
+        name: "TD",
+        dayType: "Training Day",
+        calories: 2063,
+        proteinG: 177,
+        carbsG: 212,
+        fatG: 53,
+      },
     ]);
   });
 });
