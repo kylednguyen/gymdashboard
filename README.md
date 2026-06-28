@@ -14,13 +14,12 @@ Just for me, on my phone.
 
 ## Setup
 
-The dashboard reads from Airtable server-side, so it needs three env vars in `.env`:
+The dashboard reads from Airtable server-side, so it needs two env vars in `.env`:
 
 - `AIRTABLE_PAT` — an Airtable personal access token with `data.records:read` on the base
-  (Airtable → Builder hub → Personal access tokens). **Still a placeholder — add a real token.**
+  (Airtable → Builder hub → Personal access tokens).
 - `AIRTABLE_BASE_ID` — already set to my base.
-- `DASHBOARD_PASSWORD` — the password the dashboard prompts for.
 
-Then `npm install`, `npm run dev`, open http://localhost:3000, and enter the password
-(any username). Charts fill in once the **Check Ins** table has logged days; the meal
-plan and targets show as soon as a valid token is in place.
+Then `npm install`, `npm run dev`, open http://localhost:3000. The dashboard is public
+(no login). Charts fill in once the **Check Ins** table has logged days; the meal plan
+and targets show as soon as a valid token is in place.
