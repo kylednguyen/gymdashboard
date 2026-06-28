@@ -9,7 +9,7 @@ interface RingProps {
 }
 
 /** Generic SVG progress ring used for the calorie hero and the macro rings. */
-export function Ring({ pct, size, stroke, color, track = "#e6e9f0", children }: RingProps) {
+export function Ring({ pct, size, stroke, color, track = "var(--track)", children }: RingProps) {
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const clamped = Math.max(0, Math.min(1, pct));

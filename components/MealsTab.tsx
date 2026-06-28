@@ -24,7 +24,7 @@ interface Props {
   onDayType: (d: DayType) => void;
 }
 
-export function DiaryTab({ templates, items, targets, dayType, onDayType }: Props) {
+export function MealsTab({ templates, items, targets, dayType, onDayType }: Props) {
   const dayTemplates = templates.filter((t) => t.dayType === dayType);
   const dayItems = items.filter((i) => i.dayType === dayType);
   const slots = Array.from(
@@ -38,6 +38,11 @@ export function DiaryTab({ templates, items, targets, dayType, onDayType }: Prop
 
   return (
     <div className="flex flex-col gap-4">
+      <div>
+        <h2 className="text-base font-bold">Typical meals</h2>
+        <p className="text-xs text-muted">Your plan by day type</p>
+      </div>
+
       <DayTypeToggle value={dayType} onChange={onDayType} />
 
       {target && (
@@ -62,13 +67,14 @@ export function DiaryTab({ templates, items, targets, dayType, onDayType }: Prop
             const tmpl = dayTemplates.find((t) => t.mealSlot === slot);
             const slotItems = dayItems.filter((i) => i.mealSlot === slot);
             return (
-              <MealCard
-                key={slot}
-                slot={slot}
-                timing={tmpl?.timing}
-                items={slotItems}
-                defaultOpen={idx === 0}
-              />
+              <div key={slot} className="animate-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                <MealCard
+                  slot={slot}
+                  timing={tmpl?.timing}
+                  items={slotItems}
+                  defaultOpen={idx === 0}
+                />
+              </div>
             );
           })
         )}

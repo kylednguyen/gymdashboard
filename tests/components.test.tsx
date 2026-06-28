@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { DayTypeToggle } from "@/components/DayTypeToggle";
-import { DiaryTab } from "@/components/DiaryTab";
+import { MealsTab } from "@/components/MealsTab";
 import { DailyTarget, MealItem, MealTemplate } from "@/lib/types";
 
 describe("DayTypeToggle", () => {
@@ -15,7 +15,7 @@ describe("DayTypeToggle", () => {
   });
 });
 
-describe("DiaryTab", () => {
+describe("MealsTab", () => {
   const targets: DailyTarget[] = [
     { id: "td", name: "TD", dayType: "Training Day", calories: 2063, proteinG: 177, carbsG: 212, fatG: 53 },
   ];
@@ -28,7 +28,7 @@ describe("DiaryTab", () => {
 
   it("shows the day's target and meal slots", () => {
     render(
-      <DiaryTab
+      <MealsTab
         templates={templates}
         items={items}
         targets={targets}

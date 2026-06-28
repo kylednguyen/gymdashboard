@@ -31,8 +31,12 @@ export function WeightTrend({ data }: Props) {
                 contentStyle={{
                   borderRadius: 12,
                   border: "1px solid var(--border)",
+                  background: "var(--surface)",
+                  color: "var(--foreground)",
                   fontSize: 12,
                 }}
+                labelStyle={{ color: "var(--muted)" }}
+                itemStyle={{ color: "var(--foreground)" }}
               />
               <Line
                 type="monotone"

@@ -6,7 +6,10 @@ import {
   caloriesVsTargetSeries,
   latestLoggedDay,
   weeklyAverages,
-  dayBudget,
+  checkInForDate,
+  dayTypeForDate,
+  consumedMacros,
+  targetMacrosFor,
 } from "@/lib/metrics";
 import { CheckIn, DailyTarget } from "@/lib/types";
 
@@ -82,23 +85,36 @@ describe("latestLoggedDay", () => {
   });
 });
 
-describe("dayBudget", () => {
-  it("returns the target with zero consumed when nothing is logged", () => {
-    const b = dayBudget([], targets, "Training Day");
-    expect(b.target).toEqual({ calories: 2063, proteinG: 177, carbsG: 212, fatG: 53 });
-    expect(b.consumed).toEqual({ calories: 0, proteinG: 0, carbsG: 0, fatG: 0 });
-    expect(b.loggedDate).toBeNull();
+describe("today helpers", () => {
+  const data = [
+    ci({ date: "2026-06-28", dayType: "Non-Training Day", caloriesLogged: 1480, proteinG: 160, carbsG: 80, fatG: 55 }),
+    ci({ date: "2026-06-26", dayType: "Training Day", caloriesLogged: 2000 }),
+  ];
+
+  it("finds the check-in and day type for a date", () => {
+    expect(checkInForDate(data, "2026-06-28")?.caloriesLogged).toBe(1480);
+    expect(checkInForDate(data, "2026-06-27")).toBeNull();
+    expect(dayTypeForDate(data, "2026-06-28")).toBe("Non-Training Day");
+    expect(dayTypeForDate(data, "2026-06-27")).toBeNull();
   });
 
-  it("uses the most recent matching-day-type check-in for consumed", () => {
-    const data = [
-      ci({ date: "2026-06-24", dayType: "Training Day", caloriesLogged: 1900, proteinG: 150 }),
-      ci({ date: "2026-06-28", dayType: "Training Day", caloriesLogged: 2100, proteinG: 175, carbsG: 200, fatG: 50 }),
-      ci({ date: "2026-06-27", dayType: "Non-Training Day", caloriesLogged: 1500 }),
-    ];
-    const b = dayBudget(data, targets, "Training Day");
-    expect(b.consumed).toEqual({ calories: 2100, proteinG: 175, carbsG: 200, fatG: 50 });
-    expect(b.loggedDate).toBe("2026-06-28");
+  it("reads consumed macros with zeros for a missing check-in", () => {
+    expect(consumedMacros(checkInForDate(data, "2026-06-28"))).toEqual({
+      calories: 1480,
+      proteinG: 160,
+      carbsG: 80,
+      fatG: 55,
+    });
+    expect(consumedMacros(null)).toEqual({ calories: 0, proteinG: 0, carbsG: 0, fatG: 0 });
+  });
+
+  it("returns target macros for a day type", () => {
+    expect(targetMacrosFor(targets, "Training Day")).toEqual({
+      calories: 2063,
+      proteinG: 177,
+      carbsG: 212,
+      fatG: 53,
+    });
   });
 });
 

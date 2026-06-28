@@ -1,21 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f1f4f9; /* app gray */
-  --surface: #ffffff; /* cards */
-  --foreground: #0f172a; /* near-black text */
-  --muted: #64748b; /* secondary text (slate-500) */
-  --border: #e6e9f0;
-  --brand: #2563eb; /* MyFitnessPal-style blue */
-  --brand-strong: #1d4ed8;
-  --carbs: #0fb5c4; /* teal */
-  --protein: #e89a2c; /* gold */
-  --fat: #9b5de5; /* purple */
+  --background: #0b0f17; /* app near-black */
+  --surface: #161b26; /* dark cards */
+  --surface-2: #1f2633; /* raised / hover */
+  --foreground: #f1f5f9; /* light text */
+  --muted: #94a3b8; /* secondary text (slate-400) */
+  --border: #232a37;
+  --track: #232a37; /* ring track on dark */
+  --brand: #3b82f6; /* MyFitnessPal-style blue */
+  --brand-strong: #2563eb;
+  --carbs: #22c7d6; /* teal */
+  --protein: #f0b246; /* gold */
+  --fat: #b07cf0; /* purple */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
@@ -38,11 +41,41 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* --- Animations --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: fadeInUp 0.28s ease both;
+}
+
+.animate-fade {
+  animation: fadeIn 0.3s ease both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
 }

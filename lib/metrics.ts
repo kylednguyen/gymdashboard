@@ -102,47 +102,35 @@ function avg(values: number[]): number | null {
   return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
 }
 
-export interface DayBudget {
-  dayType: DayType;
-  target: MacroSet | null;
-  consumed: MacroSet;
-  loggedDate: string | null;
-}
-
 const ZERO: MacroSet = { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 };
 
+/** The check-in for a specific date, or null. */
+export function checkInForDate(checkIns: CheckIn[], date: string): CheckIn | null {
+  return checkIns.find((c) => c.date === date) ?? null;
+}
+
 /**
- * Calorie/macro budget for a day type: the target, plus what was consumed on
- * the most recent logged check-in of that type (zeros when nothing is logged).
- * Drives the MyFitnessPal-style ring — "budget − food = remaining".
+ * The day type logged for a date (Training / Non-Training), if any — used to
+ * proactively pre-select the filter on the Log page based on today's check-in.
  */
-export function dayBudget(
-  checkIns: CheckIn[],
-  targets: DailyTarget[],
-  dayType: DayType
-): DayBudget {
-  const t = targetFor(targets, dayType);
-  const matches = checkIns
-    .filter((c) => c.date && c.dayType === dayType && c.caloriesLogged !== undefined)
-    .slice()
-    .sort((a, b) => toDayNum(a.date) - toDayNum(b.date));
-  const latest = matches[matches.length - 1];
-  const consumed: MacroSet = latest
-    ? {
-        calories: latest.caloriesLogged ?? 0,
-        proteinG: latest.proteinG ?? 0,
-        carbsG: latest.carbsG ?? 0,
-        fatG: latest.fatG ?? 0,
-      }
-    : ZERO;
+export function dayTypeForDate(checkIns: CheckIn[], date: string): DayType | null {
+  return checkInForDate(checkIns, date)?.dayType ?? null;
+}
+
+/** A check-in's logged calories + macros, with zeros for anything unfilled. */
+export function consumedMacros(c: CheckIn | null): MacroSet {
+  if (!c) return ZERO;
   return {
-    dayType,
-    target: t
-      ? { calories: t.calories, proteinG: t.proteinG, carbsG: t.carbsG, fatG: t.fatG }
-      : null,
-    consumed,
-    loggedDate: latest?.date ?? null,
+    calories: c.caloriesLogged ?? 0,
+    proteinG: c.proteinG ?? 0,
+    carbsG: c.carbsG ?? 0,
+    fatG: c.fatG ?? 0,
   };
+}
+
+/** Target calories + macros for a day type as a MacroSet, or null. */
+export function targetMacrosFor(targets: DailyTarget[], dayType: DayType): MacroSet | null {
+  return targetMacros(targetFor(targets, dayType));
 }
 
 /** Averages over check-ins within the last `days` days (inclusive of today). */

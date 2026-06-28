@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import { CheckIn, DailyTarget, DayType, MealItem, MealTemplate } from "@/lib/types";
-import { DashboardTab } from "./DashboardTab";
-import { DiaryTab } from "./DiaryTab";
+import { dayTypeForDate } from "@/lib/metrics";
+import { LogTab } from "./LogTab";
+import { MealsTab } from "./MealsTab";
+import { GymDiaryTab } from "./GymDiaryTab";
 import { ProgressTab } from "./ProgressTab";
-import { HomeIcon, BookIcon, TrendingIcon } from "./icons";
+import { ClipboardIcon, UtensilsIcon, DumbbellIcon, TrendingIcon } from "./icons";
 
 interface DashboardData {
   checkIns: CheckIn[];
@@ -13,17 +15,21 @@ interface DashboardData {
   mealItems: MealItem[];
 }
 
-type Tab = "dashboard" | "diary" | "progress";
+type Tab = "log" | "meals" | "diary" | "progress";
 
-const TABS: { id: Tab; label: string; Icon: typeof HomeIcon; subtitle: string }[] = [
-  { id: "dashboard", label: "Dashboard", Icon: HomeIcon, subtitle: "Today's calories & macros" },
-  { id: "diary", label: "Diary", Icon: BookIcon, subtitle: "Your meal plan" },
+const TABS: { id: Tab; label: string; Icon: typeof ClipboardIcon; subtitle: string }[] = [
+  { id: "log", label: "Log", Icon: ClipboardIcon, subtitle: "Today's calorie log" },
+  { id: "meals", label: "Meals", Icon: UtensilsIcon, subtitle: "Your typical meals" },
+  { id: "diary", label: "Gym Diary", Icon: DumbbellIcon, subtitle: "Training journal" },
   { id: "progress", label: "Progress", Icon: TrendingIcon, subtitle: "Bodyweight trend" },
 ];
 
 export function AppShell({ data, today }: { data: DashboardData; today: string }) {
-  const [tab, setTab] = useState<Tab>("dashboard");
-  const [dayType, setDayType] = useState<DayType>("Training Day");
+  const [tab, setTab] = useState<Tab>("log");
+  // Proactively pre-select the day type logged for today, if any.
+  const [dayType, setDayType] = useState<DayType>(
+    () => dayTypeForDate(data.checkIns, today) ?? "Training Day"
+  );
   const active = TABS.find((t) => t.id === tab)!;
 
   return (
@@ -34,25 +40,28 @@ export function AppShell({ data, today }: { data: DashboardData; today: string }
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 pb-28 pt-4">
-        {tab === "dashboard" && (
-          <DashboardTab
-            checkIns={data.checkIns}
-            targets={data.targets}
-            today={today}
-            dayType={dayType}
-            onDayType={setDayType}
-          />
-        )}
-        {tab === "diary" && (
-          <DiaryTab
-            templates={data.mealTemplates}
-            items={data.mealItems}
-            targets={data.targets}
-            dayType={dayType}
-            onDayType={setDayType}
-          />
-        )}
-        {tab === "progress" && <ProgressTab checkIns={data.checkIns} today={today} />}
+        <div key={tab} className="animate-in">
+          {tab === "log" && (
+            <LogTab
+              checkIns={data.checkIns}
+              targets={data.targets}
+              today={today}
+              dayType={dayType}
+              onDayType={setDayType}
+            />
+          )}
+          {tab === "meals" && (
+            <MealsTab
+              templates={data.mealTemplates}
+              items={data.mealItems}
+              targets={data.targets}
+              dayType={dayType}
+              onDayType={setDayType}
+            />
+          )}
+          {tab === "diary" && <GymDiaryTab checkIns={data.checkIns} />}
+          {tab === "progress" && <ProgressTab checkIns={data.checkIns} today={today} />}
+        </div>
       </main>
 
       <nav
