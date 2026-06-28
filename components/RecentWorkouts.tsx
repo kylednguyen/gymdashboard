@@ -10,9 +10,9 @@ export function RecentWorkouts({ workouts }: { workouts: Workout[] }) {
         <table className="w-full text-sm">
           <thead className="text-left text-neutral-400">
             <tr>
-              <th className="py-1">Date</th>
-              <th className="py-1">Type</th>
-              <th className="py-1">Min</th>
+              <th scope="col" className="py-1">Date</th>
+              <th scope="col" className="py-1">Type</th>
+              <th scope="col" className="py-1">Min</th>
             </tr>
           </thead>
           <tbody>

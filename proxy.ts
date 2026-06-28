@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkBasicAuth } from "@/lib/auth";
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const password = process.env.DASHBOARD_PASSWORD;
   if (!password) {
     return new NextResponse("Server misconfigured: DASHBOARD_PASSWORD not set", { status: 500 });

@@ -6,7 +6,7 @@ export function ConsistencyHeatmap({ data }: { data: { date: string; count: numb
       <h2 className="mb-3 text-sm font-medium text-neutral-300">Consistency (last {data.length} days)</h2>
       <div className="flex flex-wrap gap-1">
         {data.map((d) => (
-          <div key={d.date} title={`${d.date}: ${d.count}`} className={`h-4 w-4 rounded-sm ${shade(d.count)}`} />
+          <div key={d.date} title={`${d.date}: ${d.count}`} role="img" aria-label={`${d.date}: ${d.count} workouts`} className={`h-4 w-4 rounded-sm ${shade(d.count)}`} />
         ))}
       </div>
     </section>

@@ -20,7 +20,7 @@ function todayISO(): string {
 }
 
 export default async function Page() {
-  let data;
+  let data: Awaited<ReturnType<typeof getDashboardData>>;
   try {
     data = await getDashboardData();
   } catch (e) {

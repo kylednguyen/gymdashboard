@@ -29,7 +29,7 @@ export async function getGoals(): Promise<Goal[]> {
   return (await fetchTable("Goals")).map(mapGoal);
 }
 
-export async function getDashboardData() {
+export async function getDashboardData(): Promise<{ workouts: Workout[]; bodyMetrics: BodyMetric[]; goals: Goal[] }> {
   const [workouts, bodyMetrics, goals] = await Promise.all([
     getWorkouts(),
     getBodyMetrics(),

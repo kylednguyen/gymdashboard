@@ -8,7 +8,7 @@ Create three tables in your base:
 - **Body Metrics**: Date (date), Weight (number), Body fat % (number, optional).
 - **Goals**: Name (text), Target value (number), Current value (number), Unit (text), Target date (date, optional), Status (single select: On track/At risk/Done).
 
-Create a Personal Access Token (Airtable → Builder hub → Personal access tokens)
+Create a Personal Access Token (Airtable → Developer hub → Personal access tokens)
 with scope `data.records:read` on this base.
 
 ## Run locally

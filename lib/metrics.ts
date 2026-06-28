@@ -45,7 +45,6 @@ export function goalsOnTrack(goals: Goal[]): number {
 export function weightSeries(metrics: BodyMetric[]): { date: string; weight: number }[] {
   return metrics
     .filter((m) => m.date)
-    .slice()
     .sort((a, b) => toDayNum(a.date) - toDayNum(b.date))
     .map((m) => ({ date: m.date, weight: m.weight }));
 }

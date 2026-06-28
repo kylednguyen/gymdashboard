@@ -18,4 +18,7 @@ describe("checkBasicAuth", () => {
   it("rejects a non-Basic header", () => {
     expect(checkBasicAuth("Bearer xyz", "secret")).toBe(false);
   });
+  it("accepts a password that contains a colon", () => {
+    expect(checkBasicAuth(header("me", "pass:word"), "pass:word")).toBe(true);
+  });
 });
