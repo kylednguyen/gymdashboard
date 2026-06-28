@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { CheckIn, DailyTarget, DayType, MealItem, MealTemplate } from "@/lib/types";
+import { CheckIn, DailyTarget, DayType, MealItem, MealTemplate, WorkoutSet } from "@/lib/types";
 import { dayTypeForDate } from "@/lib/metrics";
 import { LogTab } from "./LogTab";
 import { MealsTab } from "./MealsTab";
@@ -13,6 +13,7 @@ interface DashboardData {
   targets: DailyTarget[];
   mealTemplates: MealTemplate[];
   mealItems: MealItem[];
+  workoutSets: WorkoutSet[];
 }
 
 type Tab = "log" | "meals" | "diary" | "progress";
@@ -42,13 +43,7 @@ export function AppShell({ data, today }: { data: DashboardData; today: string }
       <main className="flex-1 overflow-y-auto px-4 pb-28 pt-4">
         <div key={tab} className="animate-in">
           {tab === "log" && (
-            <LogTab
-              checkIns={data.checkIns}
-              targets={data.targets}
-              today={today}
-              dayType={dayType}
-              onDayType={setDayType}
-            />
+            <LogTab checkIns={data.checkIns} targets={data.targets} today={today} />
           )}
           {tab === "meals" && (
             <MealsTab
@@ -59,7 +54,9 @@ export function AppShell({ data, today }: { data: DashboardData; today: string }
               onDayType={setDayType}
             />
           )}
-          {tab === "diary" && <GymDiaryTab checkIns={data.checkIns} />}
+          {tab === "diary" && (
+            <GymDiaryTab checkIns={data.checkIns} workoutSets={data.workoutSets} />
+          )}
           {tab === "progress" && <ProgressTab checkIns={data.checkIns} today={today} />}
         </div>
       </main>

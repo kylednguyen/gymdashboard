@@ -53,6 +53,17 @@ export interface MealItem {
   notes?: string;
 }
 
+/** One working set from the "Workout Log" table. */
+export interface WorkoutSet {
+  id: string;
+  date: string; // ISO "YYYY-MM-DD"
+  exercise: string;
+  set?: number;
+  reps?: number;
+  weightLb?: number;
+  notes?: string;
+}
+
 /** A calories + macros bundle, used for both logged values and targets. */
 export interface MacroSet {
   calories: number;

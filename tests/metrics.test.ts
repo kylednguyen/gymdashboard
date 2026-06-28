@@ -10,8 +10,11 @@ import {
   dayTypeForDate,
   consumedMacros,
   targetMacrosFor,
+  exercisesForDate,
+  exerciseProgress,
+  diaryDates,
 } from "@/lib/metrics";
-import { CheckIn, DailyTarget } from "@/lib/types";
+import { CheckIn, DailyTarget, WorkoutSet } from "@/lib/types";
 
 const ci = (over: Partial<CheckIn> & { date: string }): CheckIn => ({
   id: over.date,
@@ -115,6 +118,34 @@ describe("today helpers", () => {
       carbsG: 212,
       fatG: 53,
     });
+  });
+});
+
+describe("workout drill-down helpers", () => {
+  const sets: WorkoutSet[] = [
+    { id: "s1", exercise: "Back Squat", date: "2026-06-14", set: 1, reps: 5, weightLb: 225 },
+    { id: "s2", exercise: "Back Squat", date: "2026-06-28", set: 1, reps: 5, weightLb: 245 },
+    { id: "s3", exercise: "Back Squat", date: "2026-06-28", set: 2, reps: 4, weightLb: 245 },
+    { id: "s4", exercise: "Leg Press", date: "2026-06-28", set: 1, reps: 10, weightLb: 360 },
+  ];
+
+  it("groups exercises for a date with their top weight", () => {
+    const groups = exercisesForDate(sets, "2026-06-28");
+    expect(groups.map((g) => g.exercise)).toEqual(["Back Squat", "Leg Press"]);
+    expect(groups[0].sets).toHaveLength(2);
+    expect(groups[0].topWeight).toBe(245);
+  });
+
+  it("builds an ascending per-exercise progress series of top weights", () => {
+    expect(exerciseProgress(sets, "Back Squat")).toEqual([
+      { date: "2026-06-14", weight: 225 },
+      { date: "2026-06-28", weight: 245 },
+    ]);
+  });
+
+  it("unions check-in and workout dates, newest first", () => {
+    const checkIns: CheckIn[] = [ci({ date: "2026-06-26", caloriesLogged: 1500 })];
+    expect(diaryDates(checkIns, sets)).toEqual(["2026-06-28", "2026-06-26", "2026-06-14"]);
   });
 });
 

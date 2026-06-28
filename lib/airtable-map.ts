@@ -4,6 +4,7 @@ import {
   DailyTarget,
   MealTemplate,
   MealItem,
+  WorkoutSet,
   DayType,
 } from "./types";
 
@@ -77,6 +78,24 @@ export function mapMealTemplate(rec: RawRecord): MealTemplate {
   const notes = str(f["Notes"]);
   if (notes) m.notes = notes;
   return m;
+}
+
+export function mapWorkoutSet(rec: RawRecord): WorkoutSet {
+  const f = rec.fields;
+  const w: WorkoutSet = {
+    id: rec.id,
+    date: str(f["Date"]) ?? "",
+    exercise: str(f["Exercise"]) ?? "",
+  };
+  const set = num(f["Set"]);
+  if (set !== undefined) w.set = set;
+  const reps = num(f["Reps"]);
+  if (reps !== undefined) w.reps = reps;
+  const weight = num(f["Weight lb"]);
+  if (weight !== undefined) w.weightLb = weight;
+  const notes = str(f["Notes"]);
+  if (notes) w.notes = notes;
+  return w;
 }
 
 export function mapMealItem(rec: RawRecord): MealItem {

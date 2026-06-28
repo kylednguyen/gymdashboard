@@ -1,4 +1,4 @@
-import { CheckIn, DailyTarget, DayType, MacroSet } from "./types";
+import { CheckIn, DailyTarget, DayType, MacroSet, WorkoutSet } from "./types";
 
 // --- date helpers (UTC day arithmetic on "YYYY-MM-DD" strings) ---
 function toDayNum(iso: string): number {
@@ -131,6 +131,54 @@ export function consumedMacros(c: CheckIn | null): MacroSet {
 /** Target calories + macros for a day type as a MacroSet, or null. */
 export function targetMacrosFor(targets: DailyTarget[], dayType: DayType): MacroSet | null {
   return targetMacros(targetFor(targets, dayType));
+}
+
+export interface ExerciseGroup {
+  exercise: string;
+  sets: WorkoutSet[];
+  topWeight: number | null;
+}
+
+/** Exercises hit on a date, each with its sets (ordered) and top working weight. */
+export function exercisesForDate(sets: WorkoutSet[], date: string): ExerciseGroup[] {
+  const byEx = new Map<string, WorkoutSet[]>();
+  for (const s of sets) {
+    if (s.date !== date) continue;
+    if (!byEx.has(s.exercise)) byEx.set(s.exercise, []);
+    byEx.get(s.exercise)!.push(s);
+  }
+  return [...byEx.entries()].map(([exercise, list]) => {
+    const ordered = list.slice().sort((a, b) => (a.set ?? 0) - (b.set ?? 0));
+    const weights = ordered.map((s) => s.weightLb).filter((w): w is number => w !== undefined);
+    return {
+      exercise,
+      sets: ordered,
+      topWeight: weights.length ? Math.max(...weights) : null,
+    };
+  });
+}
+
+/** Top working weight per date for one exercise, ascending — the progress series. */
+export function exerciseProgress(
+  sets: WorkoutSet[],
+  exercise: string
+): { date: string; weight: number }[] {
+  const byDate = new Map<string, number>();
+  for (const s of sets) {
+    if (s.exercise !== exercise || !s.date || s.weightLb === undefined) continue;
+    byDate.set(s.date, Math.max(byDate.get(s.date) ?? 0, s.weightLb));
+  }
+  return [...byDate.entries()]
+    .map(([date, weight]) => ({ date, weight }))
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+}
+
+/** All dates that have either a check-in or a logged workout set, newest first. */
+export function diaryDates(checkIns: CheckIn[], sets: WorkoutSet[]): string[] {
+  const dates = new Set<string>();
+  for (const c of checkIns) if (c.date) dates.add(c.date);
+  for (const s of sets) if (s.date) dates.add(s.date);
+  return [...dates].sort((a, b) => (a < b ? 1 : -1));
 }
 
 /** Averages over check-ins within the last `days` days (inclusive of today). */

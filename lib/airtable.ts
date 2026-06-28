@@ -10,12 +10,14 @@ import {
   mapDailyTarget,
   mapMealTemplate,
   mapMealItem,
+  mapWorkoutSet,
 } from "./airtable-map";
 import {
   CheckIn,
   DailyTarget,
   MealTemplate,
   MealItem,
+  WorkoutSet,
   RawRecord,
 } from "./types";
 
@@ -52,17 +54,23 @@ export async function getMealItems(): Promise<MealItem[]> {
   return (await fetchTable("Meal Items")).map(mapMealItem);
 }
 
+export async function getWorkoutSets(): Promise<WorkoutSet[]> {
+  return (await fetchTable("Workout Log")).map(mapWorkoutSet);
+}
+
 export async function getDashboardData(): Promise<{
   checkIns: CheckIn[];
   targets: DailyTarget[];
   mealTemplates: MealTemplate[];
   mealItems: MealItem[];
+  workoutSets: WorkoutSet[];
 }> {
-  const [checkIns, targets, mealTemplates, mealItems] = await Promise.all([
+  const [checkIns, targets, mealTemplates, mealItems, workoutSets] = await Promise.all([
     getCheckIns(),
     getDailyTargets(),
     getMealTemplates(),
     getMealItems(),
+    getWorkoutSets(),
   ]);
-  return { checkIns, targets, mealTemplates, mealItems };
+  return { checkIns, targets, mealTemplates, mealItems, workoutSets };
 }

@@ -4,6 +4,7 @@ import {
   mapDailyTarget,
   mapMealTemplate,
   mapMealItem,
+  mapWorkoutSet,
 } from "@/lib/airtable-map";
 
 describe("mapCheckIn", () => {
@@ -93,6 +94,31 @@ describe("mapMealTemplate", () => {
       mealSlot: "Shake",
       timing: "Anytime",
       notes: "Oats, whey isolate, berries.",
+    });
+  });
+});
+
+describe("mapWorkoutSet", () => {
+  it("maps a working set", () => {
+    const rec = {
+      id: "w1",
+      fields: {
+        Exercise: "Back Squat",
+        Date: "2026-06-28",
+        Set: 1,
+        Reps: 5,
+        "Weight lb": 245,
+        Notes: "felt heavy",
+      },
+    };
+    expect(mapWorkoutSet(rec)).toEqual({
+      id: "w1",
+      exercise: "Back Squat",
+      date: "2026-06-28",
+      set: 1,
+      reps: 5,
+      weightLb: 245,
+      notes: "felt heavy",
     });
   });
 });

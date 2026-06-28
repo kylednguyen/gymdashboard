@@ -1,20 +1,16 @@
-import { CheckIn, DailyTarget, DayType } from "@/lib/types";
+import { CheckIn, DailyTarget } from "@/lib/types";
 import {
   checkInForDate,
   consumedMacros,
-  dayTypeForDate,
   targetMacrosFor,
   targetFor,
 } from "@/lib/metrics";
 import { Ring } from "./Ring";
-import { DayTypeToggle } from "./DayTypeToggle";
 
 interface Props {
   checkIns: CheckIn[];
   targets: DailyTarget[];
   today: string;
-  dayType: DayType;
-  onDayType: (d: DayType) => void;
 }
 
 function MacroRing({
@@ -51,11 +47,11 @@ function fmtDate(iso: string): string {
   return `${m}/${d}`;
 }
 
-export function LogTab({ checkIns, targets, today, dayType, onDayType }: Props) {
-  const autoDayType = dayTypeForDate(checkIns, today);
+export function LogTab({ checkIns, targets, today }: Props) {
   const todayCheckIn = checkInForDate(checkIns, today);
+  const dayType = todayCheckIn?.dayType ?? null;
   const consumed = consumedMacros(todayCheckIn);
-  const target = targetMacrosFor(targets, dayType);
+  const target = dayType ? targetMacrosFor(targets, dayType) : null;
   const cal = target?.calories ?? null;
   const remaining = cal !== null ? cal - consumed.calories : null;
 
@@ -66,39 +62,40 @@ export function LogTab({ checkIns, targets, today, dayType, onDayType }: Props) 
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-base font-bold">Today</h2>
-        <p className="text-xs text-muted">
-          {today}
-          {autoDayType ? ` · logged as ${autoDayType}` : " · no check-in yet"}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-bold">Today</h2>
+          <p className="text-xs text-muted">{today}</p>
+        </div>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            dayType ? "bg-brand/15 text-brand" : "bg-white/5 text-muted"
+          }`}
+        >
+          {dayType ?? "No check-in"}
+        </span>
       </div>
 
-      <DayTypeToggle value={dayType} onChange={onDayType} />
-
-      {/* Calorie ring */}
+      {/* Calories consumed */}
       <section className="rounded-2xl bg-surface p-5">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted">Calories</h3>
-          <span className="text-xs text-muted">{dayType}</span>
-        </div>
+        <h3 className="mb-2 text-sm font-semibold text-muted">Calories consumed</h3>
         <div className="flex flex-col items-center">
           <Ring pct={cal ? consumed.calories / cal : 0} size={200} stroke={16} color="var(--brand)">
             <span className="tnum font-condensed text-5xl font-bold leading-none">
-              {remaining ?? "—"}
+              {consumed.calories}
             </span>
             <span className="mt-1 text-xs font-medium uppercase tracking-wide text-muted">
-              Remaining
+              Consumed
             </span>
           </Ring>
           <div className="mt-4 flex w-full justify-center gap-8 text-center">
             <div>
               <div className="tnum text-base font-bold">{cal ?? "—"}</div>
-              <div className="text-xs text-muted">Budget</div>
+              <div className="text-xs text-muted">Target</div>
             </div>
             <div>
-              <div className="tnum text-base font-bold">{consumed.calories}</div>
-              <div className="text-xs text-muted">Food</div>
+              <div className="tnum text-base font-bold">{remaining ?? "—"}</div>
+              <div className="text-xs text-muted">Remaining</div>
             </div>
           </div>
         </div>
