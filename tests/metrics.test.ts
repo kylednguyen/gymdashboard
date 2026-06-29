@@ -10,6 +10,8 @@ import {
   dayTypeForDate,
   consumedMacros,
   targetMacrosFor,
+  latestCheckIn,
+  currentCheckIn,
   exercisesForDate,
   exerciseProgress,
   diaryDates,
@@ -118,6 +120,14 @@ describe("today helpers", () => {
       carbsG: 212,
       fatG: 53,
     });
+  });
+
+  it("falls back to the latest check-in when today isn't logged", () => {
+    // today is 2026-06-29, but the most recent logged day is 2026-06-28.
+    expect(latestCheckIn(data)?.date).toBe("2026-06-28");
+    expect(currentCheckIn(data, "2026-06-29")?.date).toBe("2026-06-28");
+    expect(currentCheckIn(data, "2026-06-28")?.date).toBe("2026-06-28");
+    expect(currentCheckIn([], "2026-06-29")).toBeNull();
   });
 });
 

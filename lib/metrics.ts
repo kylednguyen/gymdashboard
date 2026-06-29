@@ -109,6 +109,21 @@ export function checkInForDate(checkIns: CheckIn[], date: string): CheckIn | nul
   return checkIns.find((c) => c.date === date) ?? null;
 }
 
+/** The most recent check-in by date, or null. */
+export function latestCheckIn(checkIns: CheckIn[]): CheckIn | null {
+  const dated = checkIns.filter((c) => c.date);
+  if (dated.length === 0) return null;
+  return dated.reduce((a, b) => (a.date >= b.date ? a : b));
+}
+
+/**
+ * The check-in to feature on the Log tab: today's if logged, otherwise the most
+ * recent one — so calories show even when today isn't logged yet.
+ */
+export function currentCheckIn(checkIns: CheckIn[], today: string): CheckIn | null {
+  return checkInForDate(checkIns, today) ?? latestCheckIn(checkIns);
+}
+
 /**
  * The day type logged for a date (Training / Non-Training), if any — used to
  * proactively pre-select the filter on the Log page based on today's check-in.

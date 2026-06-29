@@ -1,6 +1,6 @@
 import { CheckIn, DailyTarget } from "@/lib/types";
 import {
-  checkInForDate,
+  currentCheckIn,
   consumedMacros,
   targetMacrosFor,
   targetFor,
@@ -42,15 +42,26 @@ function MacroRing({
   );
 }
 
-function fmtDate(iso: string): string {
+function fmtShort(iso: string): string {
   const [, m, d] = iso.split("-");
   return `${m}/${d}`;
 }
 
+function fmtLong(iso: string): string {
+  const d = new Date(iso + "T00:00:00Z");
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export function LogTab({ checkIns, targets, today }: Props) {
-  const todayCheckIn = checkInForDate(checkIns, today);
-  const dayType = todayCheckIn?.dayType ?? null;
-  const consumed = consumedMacros(todayCheckIn);
+  const current = currentCheckIn(checkIns, today);
+  const isToday = current?.date === today;
+  const dayType = current?.dayType ?? null;
+  const consumed = consumedMacros(current);
   const target = dayType ? targetMacrosFor(targets, dayType) : null;
   const cal = target?.calories ?? null;
   const remaining = cal !== null ? cal - consumed.calories : null;
@@ -64,15 +75,15 @@ export function LogTab({ checkIns, targets, today }: Props) {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-bold">Today</h2>
-          <p className="text-xs text-muted">{today}</p>
+          <h2 className="text-base font-bold">{isToday ? "Today" : "Latest"}</h2>
+          <p className="text-xs text-muted">{current ? fmtLong(current.date) : today}</p>
         </div>
         <span
           className={`rounded-full px-3 py-1 text-xs font-semibold ${
             dayType ? "bg-brand/15 text-brand" : "bg-white/5 text-muted"
           }`}
         >
-          {dayType ?? "No check-in"}
+          {dayType ?? (current ? "Day type not set" : "No check-ins")}
         </span>
       </div>
 
@@ -127,7 +138,7 @@ export function LogTab({ checkIns, targets, today }: Props) {
                   style={{ animationDelay: `${i * 40}ms` }}
                 >
                   <div>
-                    <div className="text-sm font-semibold">{fmtDate(c.date)}</div>
+                    <div className="text-sm font-semibold">{fmtShort(c.date)}</div>
                     {c.dayType && <div className="text-xs text-muted">{c.dayType}</div>}
                   </div>
                   <div className="tnum text-sm">
