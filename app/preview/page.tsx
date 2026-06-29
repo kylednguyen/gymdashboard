@@ -1,5 +1,4 @@
-// TEMPORARY preview route — reproduces the real bug scenario (today has no
-// check-in; most recent logged day is the day before). Safe to delete.
+// TEMPORARY preview route — verifies the interactive Log (What I ate + expandable rows).
 import { AppShell } from "@/components/AppShell";
 import { CheckIn, DailyTarget, MealItem, MealTemplate, WorkoutSet } from "@/lib/types";
 
@@ -8,20 +7,15 @@ const targets: DailyTarget[] = [
   { id: "ntd", name: "Non-Training Day", dayType: "Non-Training Day", calories: 1535, proteinG: 166, carbsG: 84, fatG: 59 },
 ];
 
-const mealTemplates: MealTemplate[] = [];
-const mealItems: MealItem[] = [];
-const workoutSets: WorkoutSet[] = [];
-
-// Mirrors the real Check-In: 2026-06-28, Non-Training, 1190 kcal, 167 lb.
 const checkIns: CheckIn[] = [
-  { id: "c1", date: "2026-06-28", dayType: "Non-Training Day", bodyweightLb: 167, caloriesLogged: 1190, proteinG: 105, carbsG: 57, fatG: 56, workout: false, notes: "Turkey Rice Skillet." },
+  { id: "c1", date: "2026-06-28", dayType: "Non-Training Day", bodyweightLb: 167, caloriesLogged: 1190, proteinG: 105, carbsG: 57, fatG: 56, workout: false, notes: "Meal: Turkey Rice Skillet. Estimated from 1 lb ground turkey, 2 eggs, olive oil, 1 cup rice, and a medium red onion.\n\nDay marked as Non-Training / rest day." },
+  { id: "c2", date: "2026-06-24", dayType: "Training Day", bodyweightLb: 168.2, caloriesLogged: 2040, proteinG: 175, carbsG: 205, fatG: 52, steps: 11200, workout: true, notes: "Pre: white rice + chicken. Post: rice + chicken. Shake with oats, whey, berries." },
 ];
 
 export default function PreviewPage() {
-  // today is 2026-06-29 — no check-in for today, so the Log should fall back to 06-28.
   return (
     <AppShell
-      data={{ checkIns, targets, mealTemplates, mealItems, workoutSets }}
+      data={{ checkIns, targets, mealTemplates: [], mealItems: [], workoutSets: [] }}
       today="2026-06-29"
     />
   );

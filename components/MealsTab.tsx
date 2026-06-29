@@ -1,84 +1,87 @@
-import { DailyTarget, DayType, MealItem, MealTemplate } from "@/lib/types";
-import { DayTypeToggle } from "./DayTypeToggle";
-import { MealCard } from "./MealCard";
+import { CheckIn, DailyTarget } from "@/lib/types";
+import { targetFor } from "@/lib/metrics";
 
-const SLOT_ORDER = [
-  "Shake",
-  "Preworkout Meal",
-  "Post Workout Meal",
-  "Meal 2",
-  "Meal 3",
-  "Meal 4",
-];
-
-function slotRank(slot: string): number {
-  const i = SLOT_ORDER.indexOf(slot);
-  return i === -1 ? SLOT_ORDER.length : i;
+function fmtLong(iso: string): string {
+  const d = new Date(iso + "T00:00:00Z");
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 interface Props {
-  templates: MealTemplate[];
-  items: MealItem[];
+  checkIns: CheckIn[];
   targets: DailyTarget[];
-  dayType: DayType;
-  onDayType: (d: DayType) => void;
 }
 
-export function MealsTab({ templates, items, targets, dayType, onDayType }: Props) {
-  const dayTemplates = templates.filter((t) => t.dayType === dayType);
-  const dayItems = items.filter((i) => i.dayType === dayType);
-  const slots = Array.from(
-    new Set(
-      [...dayTemplates.map((t) => t.mealSlot), ...dayItems.map((i) => i.mealSlot)].filter(
-        Boolean
-      ) as string[]
-    )
-  ).sort((a, b) => slotRank(a) - slotRank(b) || a.localeCompare(b));
-  const target = targets.find((t) => t.dayType === dayType) ?? null;
+export function MealsTab({ checkIns, targets }: Props) {
+  const days = checkIns
+    .filter((c) => c.date && (c.caloriesLogged !== undefined || c.notes))
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-base font-bold">Typical meals</h2>
-        <p className="text-xs text-muted">Your plan by day type</p>
+        <h2 className="text-base font-bold">My meals</h2>
+        <p className="text-xs text-muted">What you&apos;ve eaten, by day</p>
       </div>
 
-      <DayTypeToggle value={dayType} onChange={onDayType} />
-
-      {target && (
-        <section className="rounded-2xl bg-brand p-4 text-white">
-          <div className="text-xs font-medium uppercase tracking-wide text-white/70">
-            Daily target
-          </div>
-          <div className="tnum mt-1 text-2xl font-bold">{target.calories} kcal</div>
-          <div className="tnum mt-1 text-sm text-white/85">
-            {target.proteinG}P · {target.carbsG}C · {target.fatG}F
-          </div>
-        </section>
-      )}
-
-      <div className="flex flex-col gap-3">
-        {slots.length === 0 ? (
-          <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
-            No meals defined for this day.
-          </p>
-        ) : (
-          slots.map((slot, idx) => {
-            const tmpl = dayTemplates.find((t) => t.mealSlot === slot);
-            const slotItems = dayItems.filter((i) => i.mealSlot === slot);
+      {days.length === 0 ? (
+        <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
+          No meals logged yet — add a Check-In with notes in Airtable.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {days.map((c, i) => {
+            const target = c.dayType ? targetFor(targets, c.dayType)?.calories ?? null : null;
+            const macros = [
+              c.proteinG !== undefined ? `${c.proteinG}g protein` : null,
+              c.carbsG !== undefined ? `${c.carbsG}g carbs` : null,
+              c.fatG !== undefined ? `${c.fatG}g fat` : null,
+            ].filter(Boolean) as string[];
             return (
-              <div key={slot} className="animate-in" style={{ animationDelay: `${idx * 50}ms` }}>
-                <MealCard
-                  slot={slot}
-                  timing={tmpl?.timing}
-                  items={slotItems}
-                  defaultOpen={idx === 0}
-                />
-              </div>
+              <section
+                key={c.id}
+                className="animate-in rounded-2xl bg-surface p-4"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-semibold">{fmtLong(c.date)}</div>
+                    {c.dayType && <div className="text-xs text-muted">{c.dayType}</div>}
+                  </div>
+                  {c.caloriesLogged !== undefined && (
+                    <div className="tnum shrink-0 text-sm">
+                      <span className="font-bold">{c.caloriesLogged}</span>
+                      <span className="text-muted"> / {target ?? "—"} kcal</span>
+                    </div>
+                  )}
+                </div>
+                {c.notes ? (
+                  <p className="mt-2 whitespace-pre-line text-sm text-foreground">{c.notes}</p>
+                ) : (
+                  <p className="mt-2 text-sm text-muted">No meal details logged.</p>
+                )}
+                {macros.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {macros.map((m) => (
+                      <span
+                        key={m}
+                        className="tnum rounded-full bg-white/5 px-2 py-0.5 text-xs text-muted"
+                      >
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </section>
             );
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
     </div>
   );
 }

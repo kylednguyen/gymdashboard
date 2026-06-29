@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
-import { CheckIn, DailyTarget, DayType, MealItem, MealTemplate, WorkoutSet } from "@/lib/types";
-import { dayTypeForDate } from "@/lib/metrics";
+import { CheckIn, DailyTarget, MealItem, MealTemplate, WorkoutSet } from "@/lib/types";
 import { LogTab } from "./LogTab";
 import { MealsTab } from "./MealsTab";
 import { GymDiaryTab } from "./GymDiaryTab";
@@ -20,17 +19,13 @@ type Tab = "log" | "meals" | "diary" | "progress";
 
 const TABS: { id: Tab; label: string; Icon: typeof ClipboardIcon; subtitle: string }[] = [
   { id: "log", label: "Log", Icon: ClipboardIcon, subtitle: "Today's calorie log" },
-  { id: "meals", label: "Meals", Icon: UtensilsIcon, subtitle: "Your typical meals" },
+  { id: "meals", label: "Meals", Icon: UtensilsIcon, subtitle: "What you've eaten" },
   { id: "diary", label: "Gym Diary", Icon: DumbbellIcon, subtitle: "Training journal" },
   { id: "progress", label: "Progress", Icon: TrendingIcon, subtitle: "Bodyweight trend" },
 ];
 
 export function AppShell({ data, today }: { data: DashboardData; today: string }) {
   const [tab, setTab] = useState<Tab>("log");
-  // Proactively pre-select the day type logged for today, if any.
-  const [dayType, setDayType] = useState<DayType>(
-    () => dayTypeForDate(data.checkIns, today) ?? "Training Day"
-  );
   const active = TABS.find((t) => t.id === tab)!;
 
   return (
@@ -45,15 +40,7 @@ export function AppShell({ data, today }: { data: DashboardData; today: string }
           {tab === "log" && (
             <LogTab checkIns={data.checkIns} targets={data.targets} today={today} />
           )}
-          {tab === "meals" && (
-            <MealsTab
-              templates={data.mealTemplates}
-              items={data.mealItems}
-              targets={data.targets}
-              dayType={dayType}
-              onDayType={setDayType}
-            />
-          )}
+          {tab === "meals" && <MealsTab checkIns={data.checkIns} targets={data.targets} />}
           {tab === "diary" && (
             <GymDiaryTab checkIns={data.checkIns} workoutSets={data.workoutSets} />
           )}

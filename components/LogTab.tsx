@@ -6,6 +6,7 @@ import {
   targetFor,
 } from "@/lib/metrics";
 import { Ring } from "./Ring";
+import { LogEntry } from "./LogEntry";
 
 interface Props {
   checkIns: CheckIn[];
@@ -40,11 +41,6 @@ function MacroRing({
       </div>
     </div>
   );
-}
-
-function fmtShort(iso: string): string {
-  const [, m, d] = iso.split("-");
-  return `${m}/${d}`;
 }
 
 function fmtLong(iso: string): string {
@@ -122,33 +118,29 @@ export function LogTab({ checkIns, targets, today }: Props) {
         </div>
       </section>
 
-      {/* Recent calorie log */}
+      {/* What I ate (featured day) */}
+      {current?.notes && (
+        <section className="rounded-2xl bg-surface p-5">
+          <h3 className="mb-2 text-sm font-semibold text-muted">What I ate</h3>
+          <p className="whitespace-pre-line text-sm text-foreground">{current.notes}</p>
+        </section>
+      )}
+
+      {/* Recent calorie log — tap a day to see what you ate */}
       <section className="rounded-2xl bg-surface p-5">
-        <h3 className="mb-3 text-sm font-semibold text-muted">Recent log</h3>
+        <h3 className="mb-1 text-sm font-semibold text-muted">Recent log</h3>
         {logged.length === 0 ? (
-          <p className="text-sm text-muted">No days logged yet — add a Check-In in Airtable.</p>
+          <p className="mt-2 text-sm text-muted">No days logged yet — add a Check-In in Airtable.</p>
         ) : (
-          <ul className="flex flex-col">
-            {logged.map((c, i) => {
-              const t = c.dayType ? targetFor(targets, c.dayType)?.calories ?? null : null;
-              return (
-                <li
-                  key={c.id}
-                  className="animate-in flex items-center justify-between border-t border-border py-2.5 first:border-t-0"
-                  style={{ animationDelay: `${i * 40}ms` }}
-                >
-                  <div>
-                    <div className="text-sm font-semibold">{fmtShort(c.date)}</div>
-                    {c.dayType && <div className="text-xs text-muted">{c.dayType}</div>}
-                  </div>
-                  <div className="tnum text-sm">
-                    <span className="font-bold">{c.caloriesLogged}</span>
-                    <span className="text-muted"> / {t ?? "—"}</span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="flex flex-col">
+            {logged.map((c) => (
+              <LogEntry
+                key={c.id}
+                c={c}
+                targetCalories={c.dayType ? targetFor(targets, c.dayType)?.calories ?? null : null}
+              />
+            ))}
+          </div>
         )}
       </section>
     </div>
