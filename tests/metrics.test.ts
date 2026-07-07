@@ -14,9 +14,12 @@ import {
   currentCheckIn,
   exercisesForDate,
   exerciseProgress,
+  exerciseSummaries,
   diaryDates,
+  mealPlanFor,
+  withinDays,
 } from "@/lib/metrics";
-import { CheckIn, DailyTarget, WorkoutSet } from "@/lib/types";
+import { CheckIn, DailyTarget, MealItem, MealTemplate, WorkoutSet } from "@/lib/types";
 
 const ci = (over: Partial<CheckIn> & { date: string }): CheckIn => ({
   id: over.date,
@@ -156,6 +159,52 @@ describe("workout drill-down helpers", () => {
   it("unions check-in and workout dates, newest first", () => {
     const checkIns: CheckIn[] = [ci({ date: "2026-06-26", caloriesLogged: 1500 })];
     expect(diaryDates(checkIns, sets)).toEqual(["2026-06-28", "2026-06-26", "2026-06-14"]);
+  });
+
+  it("summarizes each exercise with last date and all-time top weight", () => {
+    expect(exerciseSummaries(sets)).toEqual([
+      { exercise: "Back Squat", lastDate: "2026-06-28", topWeight: 245 },
+      { exercise: "Leg Press", lastDate: "2026-06-28", topWeight: 360 },
+    ]);
+  });
+});
+
+describe("mealPlanFor", () => {
+  const templates: MealTemplate[] = [
+    { id: "m2", name: "TD — Meal 4", dayType: "Training Day", mealSlot: "Meal 4" },
+    { id: "m1", name: "TD — Shake", dayType: "Training Day", mealSlot: "Shake" },
+    { id: "m3", name: "NTD — Shake", dayType: "Non-Training Day", mealSlot: "Shake" },
+  ];
+  const items: MealItem[] = [
+    { id: "i1", entry: "TD Shake — Oats", dayType: "Training Day", mealSlot: "Shake", food: "Oats", amountG: 35 },
+    { id: "i2", entry: "TD Meal 4 — Steak", dayType: "Training Day", mealSlot: "Meal 4", food: "Flank Steak" },
+    { id: "i3", entry: "NTD Shake — Oats", dayType: "Non-Training Day", mealSlot: "Shake", food: "Oats", amountG: 18 },
+  ];
+
+  it("returns a day type's slots in day order with matching items", () => {
+    const plan = mealPlanFor(templates, items, "Training Day");
+    expect(plan.map((p) => p.template.mealSlot)).toEqual(["Shake", "Meal 4"]);
+    expect(plan[0].items.map((i) => i.food)).toEqual(["Oats"]);
+    expect(plan[1].items.map((i) => i.food)).toEqual(["Flank Steak"]);
+  });
+
+  it("keeps day types separate", () => {
+    const plan = mealPlanFor(templates, items, "Non-Training Day");
+    expect(plan).toHaveLength(1);
+    expect(plan[0].items[0].amountG).toBe(18);
+  });
+});
+
+describe("withinDays", () => {
+  const rows = [{ date: "2026-06-20" }, { date: "2026-06-25" }, { date: "2026-06-28" }];
+  it("keeps rows inside the trailing window", () => {
+    expect(withinDays(rows, "2026-06-28", 7).map((r) => r.date)).toEqual([
+      "2026-06-25",
+      "2026-06-28",
+    ]);
+  });
+  it("returns everything for a null range", () => {
+    expect(withinDays(rows, "2026-06-28", null)).toHaveLength(3);
   });
 });
 

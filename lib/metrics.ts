@@ -1,4 +1,12 @@
-import { CheckIn, DailyTarget, DayType, MacroSet, WorkoutSet } from "./types";
+import {
+  CheckIn,
+  DailyTarget,
+  DayType,
+  MacroSet,
+  MealItem,
+  MealTemplate,
+  WorkoutSet,
+} from "./types";
 
 // --- date helpers (UTC day arithmetic on "YYYY-MM-DD" strings) ---
 function toDayNum(iso: string): number {
@@ -148,6 +156,52 @@ export function targetMacrosFor(targets: DailyTarget[], dayType: DayType): Macro
   return targetMacros(targetFor(targets, dayType));
 }
 
+/** Rows whose date falls within the last `days` days ending at `today` (null = all). */
+export function withinDays<T extends { date: string }>(
+  rows: T[],
+  today: string,
+  days: number | null
+): T[] {
+  if (days === null) return rows;
+  const end = toDayNum(today);
+  const start = end - (days - 1);
+  return rows.filter((r) => {
+    const d = toDayNum(r.date);
+    return d >= start && d <= end;
+  });
+}
+
+/** Meal slots in the order they appear through a day. Unknown slots sort last. */
+const SLOT_ORDER = ["Shake", "Preworkout Meal", "Post Workout Meal", "Meal 2", "Meal 3", "Meal 4"];
+
+function slotIndex(slot?: string): number {
+  const i = slot ? SLOT_ORDER.indexOf(slot) : -1;
+  return i === -1 ? SLOT_ORDER.length : i;
+}
+
+export interface MealPlanSlot {
+  template: MealTemplate;
+  items: MealItem[];
+}
+
+/** The meal plan for a day type: its meal slots in day order, each with its items. */
+export function mealPlanFor(
+  templates: MealTemplate[],
+  items: MealItem[],
+  dayType: DayType
+): MealPlanSlot[] {
+  return templates
+    .filter((t) => t.dayType === dayType)
+    .slice()
+    .sort((a, b) => slotIndex(a.mealSlot) - slotIndex(b.mealSlot))
+    .map((template) => ({
+      template,
+      items: items.filter(
+        (i) => i.dayType === dayType && i.mealSlot === template.mealSlot
+      ),
+    }));
+}
+
 export interface ExerciseGroup {
   exercise: string;
   sets: WorkoutSet[];
@@ -171,6 +225,40 @@ export function exercisesForDate(sets: WorkoutSet[], date: string): ExerciseGrou
       topWeight: weights.length ? Math.max(...weights) : null,
     };
   });
+}
+
+export interface ExerciseSummary {
+  exercise: string;
+  lastDate: string;
+  topWeight: number | null;
+}
+
+/** Every logged exercise with its most recent date and all-time top weight, most recent first. */
+export function exerciseSummaries(sets: WorkoutSet[]): ExerciseSummary[] {
+  const byEx = new Map<string, ExerciseSummary>();
+  for (const s of sets) {
+    if (!s.exercise || !s.date) continue;
+    const cur = byEx.get(s.exercise);
+    if (!cur) {
+      byEx.set(s.exercise, {
+        exercise: s.exercise,
+        lastDate: s.date,
+        topWeight: s.weightLb ?? null,
+      });
+      continue;
+    }
+    if (s.date > cur.lastDate) cur.lastDate = s.date;
+    if (s.weightLb !== undefined && (cur.topWeight === null || s.weightLb > cur.topWeight)) {
+      cur.topWeight = s.weightLb;
+    }
+  }
+  return [...byEx.values()].sort((a, b) =>
+    a.lastDate === b.lastDate
+      ? a.exercise.localeCompare(b.exercise)
+      : a.lastDate < b.lastDate
+        ? 1
+        : -1
+  );
 }
 
 /** Top working weight per date for one exercise, ascending — the progress series. */

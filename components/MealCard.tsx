@@ -1,7 +1,12 @@
 "use client";
-import { useState } from "react";
 import { MealItem } from "@/lib/types";
-import { ChevronIcon } from "./icons";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 
 function itemLabel(it: MealItem): string {
   const amount = it.amountG !== undefined ? `${it.amountG} g ` : "";
@@ -13,56 +18,54 @@ export function MealCard({
   slot,
   timing,
   items,
+  notes,
   defaultOpen = false,
 }: {
   slot: string;
   timing?: string;
   items: MealItem[];
+  notes?: string;
   defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="overflow-hidden rounded-2xl bg-surface">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="flex w-full cursor-pointer items-center justify-between gap-2 px-4 py-3.5 text-left transition-transform active:scale-[0.99]"
-      >
-        <div>
-          <div className="font-semibold">{slot}</div>
-          {timing && <div className="text-xs text-muted">{timing}</div>}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted">
-            {items.length} item{items.length === 1 ? "" : "s"}
+    <Accordion
+      type="single"
+      collapsible
+      defaultValue={defaultOpen ? slot : undefined}
+      className="overflow-hidden rounded-2xl bg-card"
+    >
+      <AccordionItem value={slot} className="border-b-0">
+        <AccordionTrigger className="px-4">
+          <span className="flex w-full items-center justify-between gap-2">
+            <span>
+              <span className="block font-semibold">{slot}</span>
+              {timing && (
+                <span className="block text-xs font-normal text-muted-foreground">{timing}</span>
+              )}
+            </span>
+            <span className="shrink-0 text-xs font-normal text-muted-foreground">
+              {items.length} item{items.length === 1 ? "" : "s"}
+            </span>
           </span>
-          <ChevronIcon
-            className={`h-5 w-5 text-muted transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          />
-        </div>
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-200 ease-out"
-        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
-      >
-        <div className="overflow-hidden">
-          <ul className="space-y-1.5 border-t border-border px-4 py-3 text-sm">
-            {items.length === 0 ? (
-              <li className="text-muted">No items.</li>
-            ) : (
-              items.map((it) => (
-                <li key={it.id} className="flex justify-between gap-3">
-                  <span className="text-foreground">{itemLabel(it)}</span>
-                  {it.optionGroup && (
-                    <span className="shrink-0 text-xs text-muted">{it.optionGroup}</span>
-                  )}
-                </li>
-              ))
-            )}
-          </ul>
-        </div>
-      </div>
-    </div>
+        </AccordionTrigger>
+        <AccordionContent className="pb-0">
+          <div className="border-t border-border px-4 py-3">
+            {notes && <p className="mb-2 text-sm text-muted-foreground">{notes}</p>}
+            <ul className="space-y-1.5 text-sm">
+              {items.length === 0 ? (
+                <li className="text-muted-foreground">No items.</li>
+              ) : (
+                items.map((it) => (
+                  <li key={it.id} className="flex items-center justify-between gap-3">
+                    <span className="text-foreground">{itemLabel(it)}</span>
+                    {it.optionGroup && <Badge variant="secondary">{it.optionGroup}</Badge>}
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }

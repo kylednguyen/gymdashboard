@@ -7,7 +7,7 @@ interface Props {
 
 export function LiftProgressChart({ data }: Props) {
   if (data.length === 0) {
-    return <p className="text-sm text-muted">No weight logged for this lift yet.</p>;
+    return <p className="text-sm text-muted-foreground">No weight logged for this lift yet.</p>;
   }
   return (
     <div className="h-52 w-full">
@@ -15,12 +15,12 @@ export function LiftProgressChart({ data }: Props) {
         <LineChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 11, fill: "var(--muted)" }}
+            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
             tickFormatter={(d) => d.slice(5)}
             stroke="var(--border)"
           />
           <YAxis
-            tick={{ fontSize: 11, fill: "var(--muted)" }}
+            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
             domain={["auto", "auto"]}
             stroke="var(--border)"
             width={44}
@@ -29,20 +29,20 @@ export function LiftProgressChart({ data }: Props) {
             contentStyle={{
               borderRadius: 12,
               border: "1px solid var(--border)",
-              background: "var(--surface)",
+              background: "var(--card)",
               color: "var(--foreground)",
               fontSize: 12,
             }}
-            labelStyle={{ color: "var(--muted)" }}
+            labelStyle={{ color: "var(--muted-foreground)" }}
             itemStyle={{ color: "var(--foreground)" }}
             formatter={(v) => [`${v} lb`, "Top set"]}
           />
           <Line
             type="monotone"
             dataKey="weight"
-            stroke="var(--brand)"
+            stroke="var(--primary)"
             strokeWidth={2.5}
-            dot={{ r: 3, fill: "var(--brand)" }}
+            dot={{ r: 3, fill: "var(--primary)" }}
           />
         </LineChart>
       </ResponsiveContainer>
