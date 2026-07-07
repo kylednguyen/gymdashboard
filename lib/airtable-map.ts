@@ -15,9 +15,14 @@ const num = (v: unknown): number | undefined =>
 const bool = (v: unknown): boolean => v === true;
 
 // Airtable returns singleSelect values as the plain choice name over the REST SDK.
+// The base's Day Type selects have drifted per table ("Training" vs "Training Day"),
+// so normalize any Training/Non-Training variant to the canonical two day types.
 const dayType = (v: unknown): DayType | undefined => {
-  const s = str(v);
-  return s === "Training Day" || s === "Non-Training Day" ? s : undefined;
+  const s = str(v)?.toLowerCase();
+  if (!s) return undefined;
+  if (s.startsWith("non-training") || s.startsWith("non training")) return "Non-Training Day";
+  if (s.startsWith("training")) return "Training Day";
+  return undefined;
 };
 
 export function mapCheckIn(rec: RawRecord): CheckIn {

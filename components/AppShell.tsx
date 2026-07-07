@@ -19,7 +19,7 @@ type Tab = "log" | "meals" | "diary" | "progress";
 
 const TABS: { id: Tab; label: string; Icon: typeof ClipboardIcon; subtitle: string }[] = [
   { id: "log", label: "Log", Icon: ClipboardIcon, subtitle: "Today's calorie log" },
-  { id: "meals", label: "Meals", Icon: UtensilsIcon, subtitle: "What you've eaten" },
+  { id: "meals", label: "Meals", Icon: UtensilsIcon, subtitle: "Meal plan & food log" },
   { id: "diary", label: "Gym Diary", Icon: DumbbellIcon, subtitle: "Training journal" },
   { id: "progress", label: "Progress", Icon: TrendingIcon, subtitle: "Bodyweight trend" },
 ];
@@ -30,9 +30,9 @@ export function AppShell({ data, today }: { data: DashboardData; today: string }
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col">
-      <header className="sticky top-0 z-10 border-b border-border bg-surface/85 px-4 py-3 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-border bg-card/85 px-4 py-3 backdrop-blur">
         <h1 className="text-lg font-bold tracking-tight">Gym Dashboard</h1>
-        <p className="text-xs text-muted">{active.subtitle}</p>
+        <p className="text-xs text-muted-foreground">{active.subtitle}</p>
       </header>
 
       <main className="flex-1 overflow-y-auto px-4 pb-28 pt-4">
@@ -40,16 +40,26 @@ export function AppShell({ data, today }: { data: DashboardData; today: string }
           {tab === "log" && (
             <LogTab checkIns={data.checkIns} targets={data.targets} today={today} />
           )}
-          {tab === "meals" && <MealsTab checkIns={data.checkIns} targets={data.targets} />}
+          {tab === "meals" && (
+            <MealsTab
+              checkIns={data.checkIns}
+              targets={data.targets}
+              mealTemplates={data.mealTemplates}
+              mealItems={data.mealItems}
+              today={today}
+            />
+          )}
           {tab === "diary" && (
             <GymDiaryTab checkIns={data.checkIns} workoutSets={data.workoutSets} />
           )}
-          {tab === "progress" && <ProgressTab checkIns={data.checkIns} today={today} />}
+          {tab === "progress" && (
+            <ProgressTab checkIns={data.checkIns} targets={data.targets} today={today} />
+          )}
         </div>
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md border-t border-border bg-surface"
+        className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md border-t border-border bg-card"
         aria-label="Primary"
       >
         {TABS.map(({ id, label, Icon }) => {
@@ -61,7 +71,7 @@ export function AppShell({ data, today }: { data: DashboardData; today: string }
               onClick={() => setTab(id)}
               aria-current={selected ? "page" : undefined}
               className={`flex min-h-[60px] flex-1 cursor-pointer flex-col items-center justify-center gap-1 pt-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] text-[11px] font-semibold transition-colors active:scale-95 ${
-                selected ? "text-brand" : "text-muted"
+                selected ? "text-primary" : "text-muted-foreground"
               }`}
             >
               <Icon className="h-6 w-6" />

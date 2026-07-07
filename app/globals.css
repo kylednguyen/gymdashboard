@@ -1,15 +1,31 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+/* shadcn/ui tokens, mapped onto the app's existing dark palette.
+   The dashboard is dark-only, so :root carries the dark values directly. */
 :root {
+  --radius: 0.75rem;
   --background: #0b0f17; /* app near-black */
-  --surface: #161b26; /* dark cards */
-  --surface-2: #1f2633; /* raised / hover */
   --foreground: #f1f5f9; /* light text */
-  --muted: #94a3b8; /* secondary text (slate-400) */
+  --card: #161b26; /* dark cards */
+  --card-foreground: #f1f5f9;
+  --popover: #161b26;
+  --popover-foreground: #f1f5f9;
+  --primary: #3b82f6; /* MyFitnessPal-style blue */
+  --primary-foreground: #ffffff;
+  --secondary: #1f2633; /* raised / hover */
+  --secondary-foreground: #f1f5f9;
+  --muted: #1f2633;
+  --muted-foreground: #94a3b8; /* secondary text (slate-400) */
+  --accent: #1f2633;
+  --accent-foreground: #f1f5f9;
+  --destructive: #ef4444;
   --border: #232a37;
-  --track: #232a37; /* ring track on dark */
-  --brand: #3b82f6; /* MyFitnessPal-style blue */
-  --brand-strong: #2563eb;
+  --input: #232a37;
+  --ring: #3b82f6;
+
+  /* app-specific chart tokens */
+  --track: #232a37; /* ring track */
   --carbs: #22c7d6; /* teal */
   --protein: #f0b246; /* gold */
   --fat: #b07cf0; /* purple */
@@ -17,18 +33,54 @@
 
 @theme inline {
   --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
   --color-border: var(--border);
-  --color-brand: var(--brand);
-  --color-brand-strong: var(--brand-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-carbs: var(--carbs);
   --color-protein: var(--protein);
   --color-fat: var(--fat);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
   --font-sans: var(--font-barlow), ui-sans-serif, system-ui, sans-serif;
   --font-condensed: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
 }
 
 body {
