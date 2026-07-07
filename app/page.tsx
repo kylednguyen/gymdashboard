@@ -18,7 +18,7 @@ export default async function Page() {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-2 p-6 text-center">
         <h1 className="text-lg font-bold">Gym Dashboard</h1>
-        <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
+        <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">
           Could not load data right now. Please try again later.
         </p>
       </main>

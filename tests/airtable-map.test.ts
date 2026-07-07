@@ -48,6 +48,17 @@ describe("mapCheckIn", () => {
     const rec = { id: "c3", fields: { "Check-in Date": "2026-06-27", "Day Type": "Rest" } };
     expect(mapCheckIn(rec).dayType).toBeUndefined();
   });
+
+  // The live base's Check Ins select has a bare "Training" choice alongside
+  // "Training Day" — both must resolve to the canonical day type.
+  it("normalizes day type variants", () => {
+    const withDayType = (v: string) =>
+      mapCheckIn({ id: "c4", fields: { "Check-in Date": "2026-06-29", "Day Type": v } }).dayType;
+    expect(withDayType("Training")).toBe("Training Day");
+    expect(withDayType("training day")).toBe("Training Day");
+    expect(withDayType("Non-Training")).toBe("Non-Training Day");
+    expect(withDayType("Non Training Day")).toBe("Non-Training Day");
+  });
 });
 
 describe("mapDailyTarget", () => {
